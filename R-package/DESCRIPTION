@@ -1,0 +1,17 @@
+Package: covidModels
+Title: Predictive Models for COVID-19
+Version: 0.0.0.9000
+Authors@R:
+    person(given = "First",
+           family = "Last",
+           role = c("aut", "cre"),
+           email = "first.last@example.com",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: Predictive models for COVID-19
+License: MIT
+Imports:
+  dplyr, tibble, tidyr, MMWRweek, lubridate, purrr, ggplot2, magrittr
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.0
