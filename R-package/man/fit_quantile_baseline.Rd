@@ -4,10 +4,16 @@
 \alias{fit_quantile_baseline}
 \title{Fit a quantile baseline model to historical disease incidence}
 \usage{
-fit_quantile_baseline(incidence)
+fit_quantile_baseline(incidence, window_size = length(incidence) - 1, ...)
 }
 \arguments{
 \item{incidence}{numeric vector of disease incidence in past time points}
+
+\item{window_size}{integer optional number of past time points to use for
+finding first differences.  If not provided, all past first differences
+will be used.}
+
+\item{...}{other arguments are ignored}
 }
 \value{
 quantile_baseline fit object

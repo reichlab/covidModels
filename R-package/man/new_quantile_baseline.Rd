@@ -4,10 +4,14 @@
 \alias{new_quantile_baseline}
 \title{Create a quantile_baseline object}
 \usage{
-new_quantile_baseline(inc_diffs)
+new_quantile_baseline(inc_diffs, symmetrize = TRUE)
 }
 \arguments{
 \item{inc_diffs}{historical first differences in incidence}
+
+\item{symmetrize}{logical. if TRUE (the default), we collect the first
+differences of incidence and their negatives; the resulting distribution on
+differences is symmetric. If FALSE, we use only the observed differences.}
 }
 \value{
 quantile_baseline fit object

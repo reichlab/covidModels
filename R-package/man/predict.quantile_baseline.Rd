@@ -4,7 +4,14 @@
 \alias{predict.quantile_baseline}
 \title{Predict future disease incidence by resampling one-step-ahead forecasts}
 \usage{
-\method{predict}{quantile_baseline}(quantile_baseline, inc_data, cum_data, quantiles, horizon, num_samples)
+\method{predict}{quantile_baseline}(
+  quantile_baseline,
+  inc_data,
+  cum_data = NULL,
+  quantiles,
+  horizon,
+  num_samples
+)
 }
 \arguments{
 \item{quantile_baseline}{a quantile_baseline fit object}
