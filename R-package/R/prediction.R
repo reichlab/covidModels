@@ -33,21 +33,23 @@ predict.simple_ts <- function(
     set.seed(seed)
   }
   
-  transformation <- simple_ts_fit$simple_ts_arg_transformation
-  sarimaTD_d <- simple_ts_fit$simple_ts_arg_d
-  sarimaTD_D <- simple_ts_fit$simple_ts_arg_D
-  ts_frequency <- simple_ts_fit$simple_ts_arg_ts_frequency
+  transformation <- attr(simple_ts_fit, 'simple_ts_transformation')
+  transform_offset <- attr(simple_ts_fit, 'simple_ts_transform_offset')
+  d <- attr(simple_ts_fit, 'simple_ts_d')
+  D <- attr(simple_ts_fit, 'simple_ts_D')
+  ts_frequency <- attr(simple_ts_fit, 'simple_ts_ts_frequency')
   
   # Initial transformation, if necessary
   if(identical(transformation, "box-cox")) {
-    est_bc_params <- simple_ts_fit$simple_ts_est_bc_params
+    bc_lambda <- attr(simple_ts_fit, 'simple_ts_bc_lambda')
   } else {
-    est_bc_params <- NULL
+    bc_lambda <- NULL
   }
   transformed_y <- do_initial_transform(
     y = newdata,
     transformation = transformation,
-    bc_params = est_bc_params)
+    transform_offset = transform_offset,
+    bc_lambda = bc_lambda)
 
   # Initial differencing, if necessary
   differenced_y <- do_difference(transformed_y, d = d, D = D,
@@ -81,7 +83,8 @@ predict.simple_ts <- function(
       invert_initial_transform(
         y = orig_trajectory_samples[i, ],
         transformation = transformation,
-        bc_params = est_bc_params)
+        transform_offset = transform_offset,
+        bc_lambda = bc_lambda)
   }
 
   attr(orig_trajectory_samples, "seed") <- seed

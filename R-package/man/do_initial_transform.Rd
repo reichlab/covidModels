@@ -4,7 +4,7 @@
 \alias{do_initial_transform}
 \title{Do an initial transformation of time series data.}
 \usage{
-do_initial_transform(y, transformation, bc_params)
+do_initial_transform(y, transformation, transform_offset = 0.5, bc_lambda)
 }
 \arguments{
 \item{y}{a univariate time series or numeric vector.}
@@ -12,9 +12,16 @@ do_initial_transform(y, transformation, bc_params)
 \item{transformation}{character specifying transformation type:
 "box-cox", "log", "forecast-box-cox", or "none".}
 
-\item{bc_params}{(required if transformation is "box-cox").  Parameters for
-the Box-Cox transformation.  bc_params$lambda should be the result of a
-call to car::powerTransform(y + bc_params$gamma, family = "bcPower")}
+\item{transform_offset}{numeric offset used before the Box-Cox and log
+transformations; the offset is added to all observations before
+transforming.  Default value of 0.5 allows us to use the Box-Cox and log
+transforms (which require positive inputs) in case of observations of 0,
+and also ensures that the reverse transformed values will always be at
+least -0.5, so that they round up to non-negative values.}
+
+\item{bc_lambda}{(required if transformation is "box-cox").  Parameter for
+the Box-Cox transformation.  bc_lambda should be the result of a
+call to car::powerTransform(y + transform_offset, family = "bcPower")}
 }
 \value{
 a transformed object of the same class as y

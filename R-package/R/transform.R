@@ -5,24 +5,34 @@
 #' @param y a univariate time series or numeric vector.
 #' @param transformation character specifying transformation type:
 #'   "box-cox", "log", "forecast-box-cox", or "none".
-#' @param bc_params (required if transformation is "box-cox").  Parameters for
-#'   the Box-Cox transformation.  bc_params$lambda should be the result of a
-#'   call to car::powerTransform(y + bc_params$gamma, family = "bcPower")
+#' @param transform_offset numeric offset used before the Box-Cox and log
+#'   transformations; the offset is added to all observations before
+#'   transforming.  Default value of 0.5 allows us to use the Box-Cox and log
+#'   transforms (which require positive inputs) in case of observations of 0,
+#'   and also ensures that the reverse transformed values will always be at
+#'   least -0.5, so that they round up to non-negative values.
+#' @param bc_lambda (required if transformation is "box-cox").  Parameter for
+#'   the Box-Cox transformation.  bc_lambda should be the result of a
+#'   call to car::powerTransform(y + transform_offset, family = "bcPower")
 #'
 #' @return a transformed object of the same class as y
 #'
 #' @export
-do_initial_transform <- function(y, transformation, bc_params) {
+do_initial_transform <- function(
+  y,
+  transformation,
+  transform_offset = 0.5,
+  bc_lambda) {
   ## Update SARIMA fit object with transformed and seasonally differenced data
   if(identical(transformation, "log")) {
-    transformed_y <- log(y)
+    transformed_y <- log(y + transform_offset)
   } else if(identical(transformation, "box-cox")) {
-    if(missing(bc_params)) {
+    if(missing(bc_lambda)) {
       stop("bc_params must be provided if transformation is 'box-cox'")
     }
     transformed_y <- car::bcPower(
-      U = y + bc_params$gamma,
-      lambda = bc_params$lambda)
+      U = y + transform_offset,
+      lambda = bc_lambda)
   } else if(identical(transformation, "none") ||
       identical(transformation, "forecast-box-cox")) {
     transformed_y <- y
@@ -37,29 +47,38 @@ do_initial_transform <- function(y, transformation, bc_params) {
 #'
 #' @param y a univariate time series or numeric vector.
 #' @param transformation character specifying transformation type:
-#'   "box-cox", "log", "forecast-box-cox", or "none".
-#' @param bc_params (required if transformation is "box-cox").  Parameters for
-#'   the Box-Cox transformation.  bc_params$lambda should be the result of a
-#'   call to car::powerTransform(y + bc_params$gamma, family = "bcPower")
+#'   "box-cox", "log", or "none".
+#' @param transform_offset numeric offset used before the Box-Cox and log
+#'   transformations; the offset is added to all observations before
+#'   transforming.  Default value of 0.5 allows us to use the Box-Cox and log
+#'   transforms (which require positive inputs) in case of observations of 0,
+#'   and also ensures that the reverse transformed values will always be at
+#'   least -0.5, so that they round up to non-negative values.
+#' @param bc_lambda (required if transformation is "box-cox").  Parameter for
+#'   the Box-Cox transformation.  bc_lambda should be the result of a
+#'   call to car::powerTransform(y + transform_offset, family = "bcPower")
 #'
 #' @return a transformed object of the same class as y
 #'
 #' @export
-invert_initial_transform <- function(y, transformation, bc_params) {
+invert_initial_transform <- function(
+  y,
+  transformation,
+  transform_offset = 0.5,
+  bc_lambda) {
   if(identical(transformation, "log")) {
-    detransformed_y <- exp(y)
+    detransformed_y <- exp(y) - transform_offset
   } else if(identical(transformation, "box-cox")) {
     if(missing(bc_params)) {
       stop("bc_params must be provided if transformation is 'box-cox'")
     }
     detransformed_y <- invert_bc_transform(b = y,
-      lambda = bc_params$lambda,
-      gamma = bc_params$gamma)
-  } else if(identical(transformation, "none") ||
-      identical(transformation, "forecast-box-cox")) {
+      lambda = bc_lambda,
+      gamma = transform_offset)
+  } else if(identical(transformation, "none")) {
     detransformed_y <- y
   } else {
-    stop("Invalid transformation: must be one of 'box-cox', 'log', 'forecast-box-cox', or 'none'.")
+    stop("Invalid transformation: must be one of 'box-cox', 'log', or 'none'.")
   }
 
   return(detransformed_y)

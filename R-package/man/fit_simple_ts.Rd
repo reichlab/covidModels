@@ -9,11 +9,9 @@ fit_simple_ts(
   ts_frequency,
   model = "quantile_baseline",
   transformation = "box-cox",
-  bc_gamma = 0.5,
-  sarimaTD_d = 0,
-  sarimaTD_D = 1,
-  d = NA,
-  D = NA,
+  transform_offset = 0.5,
+  d = 0,
+  D = 0,
   ...
 )
 }
@@ -29,12 +27,12 @@ of class "ts".  See the help for stats::ts for more.}
 \item{transformation}{character specifying transformation type:
 "box-cox", "log", or "none".  See details for more.}
 
-\item{bc_gamma}{numeric offset used in Box-Cox transformation; gamma is
-added to all observations before transforming.  Default value of 0.5
-allows us to use the Box-Cox and log transforms (which require positive
-inputs) in case of observations of 0, and also ensures that the
-de-transformed values will always be at least -0.5, so that they round up
-to non-negative values.}
+\item{transform_offset}{numeric offset used before the Box-Cox and log
+transformations; the offset is added to all observations before
+transforming.  Default value of 0.5 allows us to use the Box-Cox and log
+transforms (which require positive inputs) in case of observations of 0,
+and also ensures that the reverse transformed values will always be at
+least -0.5, so that they round up to non-negative values.}
 
 \item{d}{integer order of first differencing; default is 0}
 
@@ -53,7 +51,5 @@ This function is a wrapper around model-specific fit methods,
 providing some preliminary transformations of the data.
 Formal and informal experimentation has shown these preliminary
 transformations to be helpful with a few infectious disease time series
-data sets.  Note that if any transformation was specified or the
-seasonal_difference argument was TRUE in the call to this function, only
-prediction/forecast utilities provided by this package can be used!
+data sets.
 }
