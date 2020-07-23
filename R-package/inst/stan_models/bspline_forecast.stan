@@ -228,8 +228,8 @@ data {
   // knots for spline
   // first two positions are boundary knots, remaining are interior knots
   int n_interior_knots;
-  vector interior_knots[n_interior_knots];
-  vector boundary_knots[2];
+  vector[n_interior_knots] interior_knots;
+  vector[2] boundary_knots;
   
   // number of time points forward to forecast
   int forecast_horizon;
@@ -239,7 +239,7 @@ data {
 }
 
 transformed data {
-  real ts[T+forecast_horizon];
+  vector[T+forecast_horizon] ts;
   
   int order = 4;
   int n_basis = n_interior_knots + 8 - order;
@@ -269,19 +269,19 @@ parameters {
   vector[n_basis] raw_beta;
   
   // negative binomial dispersion paramter
-  real phi_mean;
-  real phi_sd;
-  real raw_phi;
+//  real phi_mean;
+//  real phi_sd;
+//  real raw_phi;
 }
 
 transformed parameters {
   // variable definitions
   // beta vector
-  real beta[n_basis];
+  vector[n_basis] beta;
   
   // parameters of nb distribution
-  real y_mean[T+4];
-  real phi;
+  real y_mean[T+forecast_horizon];
+//  real phi;
   
   // variable calculations
 
@@ -291,38 +291,41 @@ transformed parameters {
     beta[i] = log1p_exp(fma(beta_sd, raw_beta[i], beta_mean));
   }
   
-  y_mean = to_array_1d(basis * b_beta);
-  
+  y_mean = to_array_1d(basis * beta);
+  print("y_mean: ");
+  print(y_mean);
   // negative binomial dispersion
   // this is a numerically stable calculation of
   // phi = log{1 + exp(phi_mean + phi_sd * raw_phi)};
-  phi = log1p_exp(fma(phi_sd, raw_phi, phi_mean));
+//  phi = log1p_exp(fma(phi_sd, raw_phi, phi_mean));
 }
 
 model {
   // priors
   raw_beta ~ normal(0, 1);
-  beta_mean ~ normal(0.0, 10.0);
-  beta_sd ~ gamma(1.0, 10.0);
+//  beta_mean ~ normal(0.0, 10.0);
+//  beta_sd ~ gamma(1.0, 10.0);
 
-  raw_phi ~ normal(0, 1);
-  phi_mean ~ normal(0.0, 10.0);
-  theta_sd ~ gamma(1.0, 10.0);
+//  raw_phi ~ normal(0, 1);
+//  phi_mean ~ normal(0.0, 10.0);
+//  phi_sd ~ gamma(1.0, 10.0);
+
+  print("y: ", y);
 
   // data model
   for(t in 1:T) {
-//    y[t] ~ poisson(y_mean[t]);
-    y[t] ~ neg_binomial_2(y_mean[t], phi * y_mean[t]);
+    y[t] ~ poisson(y_mean[t]);
+//    y[t] ~ neg_binomial_2(y_mean[t], phi * y_mean[t]);
   }
 }
 
-generated quantities {
-  // data model
-  matrix[nsim, T+4] y_pred;
-  for(i in 1:nsim) {
-    for(t in 1:(T+4)) {
-//      y_pred[t, i] = poisson_rng(y_mean[t]);
-      y_pred[i, t] = neg_binomial_2_rng(y_mean[t], phi * y_mean[t]);
-    }
-  }
-}
+// generated quantities {
+//   // data model
+//   matrix[nsim, T+4] y_pred;
+//   for(i in 1:nsim) {
+//     for(t in 1:(T+4)) {
+// //      y_pred[t, i] = poisson_rng(y_mean[t]);
+//       y_pred[i, t] = neg_binomial_2_rng(y_mean[t], phi * y_mean[t]);
+//     }
+//   }
+// }

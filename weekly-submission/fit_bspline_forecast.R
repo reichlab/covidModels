@@ -31,4 +31,4 @@ map_estimates <- optimizing(
     nsim = 1000
   ))
 
-
+rstan::extract(map_estimates)
