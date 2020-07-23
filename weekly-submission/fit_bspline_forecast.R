@@ -64,7 +64,6 @@ map_estimates_daily <- optimizing(
   verbose = TRUE
 )
 
-
 to_plot_daily <- data.frame(
   t = seq_len(nrow(data)),
   y = data$inc,

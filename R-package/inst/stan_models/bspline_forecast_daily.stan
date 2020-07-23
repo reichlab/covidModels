@@ -293,7 +293,7 @@ transformed parameters {
   // variable calculations
   {
     int day_index = 0;
-    real sum_gamma = 0.0;
+    real gamma_sum = 0.0;
     
     // this is a numerically stable calculation of
     // beta = log{1 + exp(beta_mean + beta_sd * raw_beta)};
