@@ -268,6 +268,11 @@ parameters {
   real beta_sd;
   vector[n_basis] raw_beta;
   
+  // gamma vector
+  real gamma_mean;
+  real gamma_sd;
+  vector[6] raw_gamma;
+  
   // negative binomial dispersion paramter
   real phi_mean;
   real phi_sd;
@@ -278,29 +283,45 @@ transformed parameters {
   // variable definitions
   // beta vector
   vector[n_basis] beta;
+  vector[7] gamma;
   
   // parameters of nb distribution
   real y_mean[T+forecast_horizon];
+  real y_mean_with_daily[T+forecast_horizon];
   real phi;
   
   // variable calculations
-
-  // this is a numerically stable calculation of
-  // beta = log{1 + exp(beta_mean + beta_sd * raw_beta)};
-  for(i in 1:n_basis) {
-    beta[i] = fma(beta_sd, raw_beta[i], beta_mean);
+  {
+    int day_index = 0;
+    real sum_gamma = 0.0;
+    
+    // this is a numerically stable calculation of
+    // beta = log{1 + exp(beta_mean + beta_sd * raw_beta)};
+    for(i in 1:n_basis) {
+      beta[i] = fma(beta_sd, raw_beta[i], beta_mean);
+    }
+    
+    for(i in 1:6) {
+      gamma[i] = log1p_exp(fma(gamma_sd, raw_gamma[i], 0.5413));
+      gamma_sum += gamma[i];
+    }
+    gamma[7] = 7.0 - gamma_sum;
+    
+    y_mean = to_array_1d(basis * beta);
+    for(i in 1:(T+forecast_horizon)) {
+      day_index += 1;
+      if(day_index > 7) {
+        day_index = 1;
+      }
+      y_mean[i] = log1p_exp(y_mean[i]) * gamma[day_index];
+    }
+    print("y_mean: ");
+    print(y_mean);
+    // negative binomial dispersion
+    // this is a numerically stable calculation of
+    // phi = log{1 + exp(phi_mean + phi_sd * raw_phi)};
+    phi = log1p_exp(fma(phi_sd, raw_phi, phi_mean));
   }
-  
-  y_mean = to_array_1d(basis * beta);
-  for(i in 1:(T+forecast_horizon)) {
-    y_mean[i] = log1p_exp(y_mean[i]);
-  }
-  print("y_mean: ");
-  print(y_mean);
-  // negative binomial dispersion
-  // this is a numerically stable calculation of
-  // phi = log{1 + exp(phi_mean + phi_sd * raw_phi)};
-  phi = log1p_exp(fma(phi_sd, raw_phi, phi_mean));
 }
 
 model {
@@ -308,6 +329,8 @@ model {
   raw_beta ~ normal(0, 1);
 //  beta_mean ~ normal(0.0, 10.0);
 //  beta_sd ~ gamma(1.0, 10.0);
+
+  raw_gamma ~ normal(0, 1);
 
   raw_phi ~ normal(0, 1);
 //  phi_mean ~ normal(0.0, 10.0);
