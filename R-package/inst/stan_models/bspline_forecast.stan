@@ -286,7 +286,7 @@ transformed parameters {
   // variable calculations
 
   // this is a numerically stable calculation of
-  // beta = log{1 + exp(beta_mean + beta_sd * raw_beta)};
+  // beta = beta_mean + beta_sd * raw_beta;
   for(i in 1:n_basis) {
     beta[i] = fma(beta_sd, raw_beta[i], beta_mean);
   }

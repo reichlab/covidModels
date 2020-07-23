@@ -313,10 +313,10 @@ transformed parameters {
       if(day_index > 7) {
         day_index = 1;
       }
-      y_mean[i] = log1p_exp(y_mean[i]) * gamma[day_index];
+      y_mean[i] = log1p_exp(y_mean[i]);
+      y_mean_with_daily[i] = y_mean[i] * gamma[day_index];
     }
-    print("y_mean: ");
-    print(y_mean);
+    
     // negative binomial dispersion
     // this is a numerically stable calculation of
     // phi = log{1 + exp(phi_mean + phi_sd * raw_phi)};
@@ -336,12 +336,10 @@ model {
 //  phi_mean ~ normal(0.0, 10.0);
 //  phi_sd ~ gamma(1.0, 10.0);
 
-  print("y: ", y);
-
   // data model
   for(t in 1:T) {
 //    y[t] ~ poisson(y_mean[t]);
-    y[t] ~ neg_binomial_2(y_mean[t], phi * y_mean[t]);
+    y[t] ~ neg_binomial_2(y_mean_with_daily[t], phi * y_mean_with_daily[t]);
   }
 }
 
@@ -351,7 +349,7 @@ generated quantities {
   for(i in 1:nsim) {
     for(t in 1:(T+forecast_horizon)) {
 //      y_pred[t, i] = poisson_rng(y_mean[t]);
-      y_pred[i, t] = neg_binomial_2_rng(y_mean[t], phi * y_mean[t]);
+      y_pred[i, t] = neg_binomial_2_rng(y_mean_with_daily[t], phi * y_mean_with_daily[t]);
     }
   }
 }

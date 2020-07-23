@@ -67,11 +67,13 @@ map_estimates_daily <- optimizing(
 to_plot_daily <- data.frame(
   t = seq_len(nrow(data)),
   y = data$inc,
-  y_hat = unname(map_estimates_daily$par[grepl('y_mean', names(map_estimates_daily$par))])[seq_len(nrow(data))]
+  y_hat = unname(map_estimates_daily$par[grepl('y_mean', names(map_estimates_daily$par))])[seq_len(nrow(data))],
+  y_hat_daily = unname(map_estimates_daily$par[grepl('y_mean_with_daily', names(map_estimates_daily$par))])[seq_len(nrow(data))]
 )
 
 ggplot(data = to_plot_daily) +
   geom_line(mapping = aes(x = t, y = y)) +
   geom_line(mapping = aes(x = t, y = y_hat), color = 'blue') +
+  geom_line(mapping = aes(x = t, y = y_hat_daily), color = 'orange', linetype = 2) +
   theme_bw()
 
