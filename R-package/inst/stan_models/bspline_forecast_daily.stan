@@ -227,6 +227,7 @@ data {
 
   // knots for spline
   // first two positions are boundary knots, remaining are interior knots
+  int spline_order;
   int n_interior_knots;
   vector[n_interior_knots] interior_knots;
   vector[2] boundary_knots;
@@ -241,8 +242,7 @@ data {
 transformed data {
   vector[T+forecast_horizon] ts;
   
-  int order = 4;
-  int n_basis = n_interior_knots + 8 - order;
+  int n_basis = n_interior_knots + 8 - spline_order;
   matrix[T + forecast_horizon, n_basis] basis;
 
   // time points with observations or to forecast
@@ -254,7 +254,7 @@ transformed data {
   basis = bspline_basis(
     (T + forecast_horizon), // n_x, number of time points at which to evaluate
     ts, // x, time points at which we evaluate
-    order, // order, order of b-spline basis
+    spline_order, // order, order of b-spline basis
     n_interior_knots,
     boundary_knots,
     interior_knots,
