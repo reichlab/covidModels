@@ -282,7 +282,7 @@ functions {
     return log1p_exp(fma(phi_sd, raw_phi, phi_mean));
   }
   
-  real rnb(mu, phi) {
+  real rnb_rng(real mu, real phi) {
     return neg_binomial_2_rng(mu, phi);
   }
 }
