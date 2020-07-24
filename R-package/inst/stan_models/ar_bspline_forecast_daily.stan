@@ -257,7 +257,11 @@ functions {
       gamma[i] = log1p_exp(fma(gamma_sd, raw_gamma[i], 0.5413));
       gamma_sum += gamma[i];
     }
-    gamma[7] = 7.0 - gamma_sum;
+    gamma[7] = 1.0
+    gamma_sum += 1.0;
+    for(i in 1:7) {
+      gamma[i] = 7.0 * gamma[i]/gamma_sum;
+    }
     
     y_mean = to_array_1d(basis * beta);
     for(i in 1:(T+forecast_horizon)) {

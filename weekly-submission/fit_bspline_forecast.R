@@ -176,6 +176,7 @@ ggplot(data = to_plot_daily_means) +
 
 
 
+# START HERE
 
 forecast_horizon <- 28L
 nsim <- 1000L
@@ -201,7 +202,7 @@ map_estimates_ar_daily <- optimizing(
 
 rstan::expose_stan_functions("R-package/inst/stan_models/ar_bspline_forecast_daily.stan")
 
-bbasis <- bspline_basis(
+basis <- bspline_basis(
   n_x = nrow(data) + forecast_horizon,
   x = seq_len(nrow(data) + forecast_horizon),
   order = 4,
