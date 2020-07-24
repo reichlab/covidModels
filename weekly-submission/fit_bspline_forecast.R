@@ -205,7 +205,7 @@ rstan::expose_stan_functions("R-package/inst/stan_models/ar_bspline_forecast_dai
 basis <- bspline_basis(
   n_x = nrow(data) + forecast_horizon,
   x = seq_len(nrow(data) + forecast_horizon),
-  order = 4,
+  order = spline_order,
   n_interior_knots = length(interior_knots),
   boundary_knots = boundary_knots,
   interior_knots = interior_knots,
@@ -215,6 +215,9 @@ basis <- bspline_basis(
 raw_beta <- map_estimates_ar_daily$par[
     paste0('raw_beta[', seq_len(length(all_knots) + spline_order), ']')] %>%
   unname()
+raw_gamma <- map_estimates_ar_daily$par[
+    paste0('raw_gamma[', seq_len(length(all_knots) + spline_order), ']')] %>%
+  unname()
 
 regenerate_inds <- seq(
   from = length(raw_beta) - 5,
@@ -222,27 +225,38 @@ regenerate_inds <- seq(
 )
 
 new_raw_beta <- raw_beta
-new_raw_beta[regenerate_inds] <- rnorm(length(regenerate_inds))
 
-mu <- compute_mu(
-  T = nrow(data),
-  forecast_horizon = forecast_horizon,
-  spline_order = spline_order,
-  n_basis = ncol(basis),
-  basis = basis,
-  ar_beta = ,
-  beta_sd,
-  new_raw_beta,
-  gamma_sd,
-  raw_gamma
-)
+n_beta_sim <- 100
+n_sim_per_beta <- 100
+y_pred <- matrix(NA, nrow = n_beta_sim * n_sim_per_beta, ncol = nrow(data) + forecast_horizon)
 
-for(i in seq_len(10)) {
-  for(t in seq_len(T + forecast_horizon)) {
-    rnb(mu[t], phi)
+pred_row_ind <- 1L
+for(beta_sim_ind in seq_len(n_beta_sim)) {
+  new_raw_beta[regenerate_inds] <- rt(
+    length(regenerate_inds),
+    df = map_estimates_ar_daily$par['beta_df'])
+  new_raw_beta[length(new_raw_beta)] <- new_raw_beta[length(new_raw_beta) - 1]
+  
+  mu <- compute_mu(
+    T = nrow(data),
+    forecast_horizon = forecast_horizon,
+    spline_order = spline_order,
+    n_basis = ncol(basis),
+    basis = basis,
+    ar_beta = unname(map_estimates_ar_daily$par['ar_beta']),
+    beta_sd = unname(map_estimates_ar_daily$par['beta_sd']),
+    raw_beta = new_raw_beta,
+    gamma_sd = unname(map_estimates_ar_daily$par['gamma_sd']),
+    raw_gamma = raw_gamma
+  )
+  
+  for(i in seq_len(n_sim_per_beta)) {
+    for(t in seq_len(nrow(data) + forecast_horizon)) {
+      y_pred[pred_row_ind, t] <- rnb_rng(mu[t], mu[t] * unname(map_estimates_ar_daily$par['phi']))
+    }
+    pred_row_ind <- pred_row_ind + 1L
   }
 }
-
 
 to_plot_ar_daily_means <- data.frame(
   t = seq_len(nrow(data)),
@@ -265,7 +279,7 @@ all_names[substr(all_names, 1, inds) == 'raw_beta[']
 all_names <- names(map_estimates_ar_daily$par)
 inds <- names(map_estimates_ar_daily$par) %>%
   regexpr(pattern = '[', fixed = TRUE)
-all_names <- all_names[inds ==-1]
+all_names[inds ==-1]
 
 
 
@@ -273,8 +287,9 @@ quantile_levels <- c(0.025, 0.1, 0.25, 0.5, 0.75, 0.9, 0.975)
 to_plot_ar_pred_quantiles <- purrr::map_dfr(
   seq_len(nrow(data) + forecast_horizon),
   function(t) {
-    samples <- unname(map_estimates_ar_daily$par[
-      paste0('y_pred[', 1:1000, ',', t, ']')])
+#    samples <- unname(map_estimates_ar_daily$par[
+#      paste0('y_pred[', 1:1000, ',', t, ']')])
+    samples <- y_pred[, t]
     data.frame(
       t = t,
       quantile = quantile_levels,

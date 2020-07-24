@@ -257,7 +257,7 @@ functions {
       gamma[i] = log1p_exp(fma(gamma_sd, raw_gamma[i], 0.5413));
       gamma_sum += gamma[i];
     }
-    gamma[7] = 1.0
+    gamma[7] = 1.0;
     gamma_sum += 1.0;
     for(i in 1:7) {
       gamma[i] = 7.0 * gamma[i]/gamma_sum;
@@ -270,7 +270,7 @@ functions {
         day_index = 1;
       }
       y_mean[i] = log1p_exp(y_mean[i]);
-      y_mean_with_daily[i] = y_mean[i] * gamma[day_index];
+      y_mean_with_daily[i] = y_mean[i] * gamma[day_index] + 0.1;
     }
     
     return y_mean_with_daily;
@@ -286,7 +286,7 @@ functions {
     return log1p_exp(fma(phi_sd, raw_phi, phi_mean));
   }
   
-  real rnb_rng(real mu, real phi) {
+  real rnb_rng(real[] mu, real phi) {
     return neg_binomial_2_rng(mu, phi);
   }
 }
@@ -339,6 +339,7 @@ parameters {
   // beta vector
   real ar_beta;
   //real beta_mean;
+  real<lower=0> beta_df;
   real beta_sd;
   vector[n_basis] raw_beta;
   
@@ -377,7 +378,8 @@ transformed parameters {
 
 model {
   // priors
-  raw_beta ~ normal(0, 1);
+  raw_beta ~ student_t(beta_df, 0.0, 1.0);
+//  raw_beta ~ normal(0, 1);
 //  beta_mean ~ normal(0.0, 10.0);
 //  beta_sd ~ gamma(1.0, 10.0);
   ar_beta ~ normal(0, 1);
