@@ -218,16 +218,17 @@ functions {
   }
   
   real[] compute_mu(
-      int T,
-      int forecast_horizon,
-      int spline_order,
-      int n_basis,
-      matrix basis,
-      real ar_beta,
-      real beta_sd,
-      vector raw_beta,
-      real gamma_sd,
-      vector raw_gamma) {
+    int T,
+    int forecast_horizon,
+    int spline_order,
+    int n_basis,
+    matrix basis,
+    real ar_beta,
+    real beta_sd,
+    vector raw_beta,
+    real gamma_sd,
+    vector raw_gamma
+  ) {
     real y_mean[T+forecast_horizon];
     real y_mean_with_daily[T+forecast_horizon];
     
@@ -271,7 +272,11 @@ functions {
     return y_mean_with_daily;
   }
   
-  real compute_phi(phi_mean, phi_sd, raw_phi) {
+  real compute_phi(
+    real phi_mean,
+    real phi_sd,
+    real raw_phi
+  ) {
     // this is a numerically stable calculation of
     // phi = log{1 + exp(phi_mean + phi_sd * raw_phi)};
     return log1p_exp(fma(phi_sd, raw_phi, phi_mean));
