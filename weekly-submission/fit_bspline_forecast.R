@@ -81,6 +81,7 @@ ggplot(
   geom_vline(xintercept = nrow(data))  +
   theme_bw()
 
+which(all_knots == nrow(data)) + 2
 
 
 model_object_daily <- rstan::stan_model(
@@ -114,7 +115,6 @@ bbasis <- bspline_basis(
 )
 
 
-regenerate_inds <- 
 
 to_plot_daily_means <- data.frame(
   t = seq_len(nrow(data)),
@@ -179,6 +179,7 @@ ggplot(data = to_plot_daily_means) +
 
 forecast_horizon <- 28L
 nsim <- 1000L
+spline_order <- 3L
 
 model_object_ar_daily <- rstan::stan_model(
   file = "R-package/inst/stan_models/ar_bspline_forecast_daily.stan")
@@ -188,7 +189,7 @@ map_estimates_ar_daily <- optimizing(
   data = list(
     T = nrow(data),
     y = as.integer(data$inc),
-    spline_order = 3L,
+    spline_order = spline_order,
     n_interior_knots = length(interior_knots),
     interior_knots = interior_knots,
     boundary_knots = boundary_knots,
@@ -198,18 +199,48 @@ map_estimates_ar_daily <- optimizing(
   verbose = TRUE
 )
 
-mcmc_estimates_ar_daily <- rstan::stan(
-  file = 'R-package/inst/stan_models/ar_bspline_forecast_daily.stan',
-  data = list(
-    T = nrow(data),
-    y = as.integer(data$inc),
-    spline_order = 3L,
-    n_interior_knots = length(interior_knots),
-    interior_knots = interior_knots,
-    boundary_knots = boundary_knots,
-    forecast_horizon = forecast_horizon,
-    nsim = nsim
-  ))
+rstan::expose_stan_functions("R-package/inst/stan_models/ar_bspline_forecast_daily.stan")
+
+bbasis <- bspline_basis(
+  n_x = nrow(data) + forecast_horizon,
+  x = seq_len(nrow(data) + forecast_horizon),
+  order = 4,
+  n_interior_knots = length(interior_knots),
+  boundary_knots = boundary_knots,
+  interior_knots = interior_knots,
+  natural = 1L
+)
+
+raw_beta <- map_estimates_ar_daily$par[
+    paste0('raw_beta[', seq_len(length(all_knots) + spline_order), ']')] %>%
+  unname()
+
+regenerate_inds <- seq(
+  from = length(raw_beta) - 5,
+  to = length(raw_beta) - 1
+)
+
+new_raw_beta <- raw_beta
+new_raw_beta[regenerate_inds] <- rnorm(length(regenerate_inds))
+
+mu <- compute_mu(
+  T = nrow(data),
+  forecast_horizon = forecast_horizon,
+  spline_order = spline_order,
+  n_basis = ncol(basis),
+  basis = basis,
+  ar_beta = ,
+  beta_sd,
+  new_raw_beta,
+  gamma_sd,
+  raw_gamma
+)
+
+for(i in seq_len(10)) {
+  for(t in seq_len(T + forecast_horizon)) {
+    rnb(mu[t], phi)
+  }
+}
 
 
 to_plot_ar_daily_means <- data.frame(
@@ -228,7 +259,7 @@ inds <- names(map_estimates_ar_daily$par) %>%
 all_names <- all_names[inds > 0]
 inds <- inds[inds > 0]
 unique(substr(all_names, 1, inds))
-all_names[substr(all_names, 1, inds) == 'y_pred[']
+all_names[substr(all_names, 1, inds) == 'raw_beta[']
 
 all_names <- names(map_estimates_ar_daily$par)
 inds <- names(map_estimates_ar_daily$par) %>%
