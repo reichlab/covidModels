@@ -295,8 +295,8 @@ transformed parameters {
     int day_index = 0;
     real gamma_sum = 0.0;
     
-    // this is a numerically stable calculation of
-    // beta = log{1 + exp(beta_mean + beta_sd * raw_beta)};
+    // this is a calculation of
+    // beta = beta_mean + beta_sd * raw_beta
     for(i in 1:n_basis) {
       beta[i] = fma(beta_sd, raw_beta[i], beta_mean);
     }

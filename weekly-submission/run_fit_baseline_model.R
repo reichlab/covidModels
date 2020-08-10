@@ -12,13 +12,12 @@ required_locations <- readr::read_csv('https://raw.githubusercontent.com/reichla
 # basic approaches
 analysis_combinations <- tidyr::expand_grid(
   location = required_locations$location,
-  forecast_week_end_date = as.character(
-    lubridate::ymd('2020-05-09') + seq(from = 0, length = 10)*7),
-  model = c('quantile_baseline-symmetrize_TRUE', 'quantile_baseline-symmetrize_FALSE'),
+  forecast_week_end_date = '2020-07-25',
+  model = 'quantile_baseline-symmetrize_TRUE',
   temporal_resolution = 'weekly',
-  window_size = '8',
-  transformation = c('none', 'log'),
-  d = c(0, 1)
+  window_size = 'NA',
+  transformation = 'none',
+  d = 0
 )
 
 foreach(row_ind = seq_len(nrow(analysis_combinations))) %dopar% {

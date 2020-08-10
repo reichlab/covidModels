@@ -4,7 +4,7 @@
 \alias{predict.simple_ts}
 \title{Generate predictions from a model fit with class simple_ts}
 \usage{
-\method{predict}{simple_ts}(simple_ts_fit, nsim = 1, seed = NULL, newdata, horizon = 1)
+\method{predict}{simple_ts}(simple_ts_fit, nsim = 1, seed = NULL, newdata, horizon = 1, ...)
 }
 \arguments{
 \item{nsim}{number of sample trajectories to simulate}
@@ -18,6 +18,8 @@ as the "seed" attribute}
 \item{newdata}{numeric vector of new data to simulate forward from}
 
 \item{horizon}{number of time steps forwards to simulate}
+
+\item{...}{other arguments passed on to model-specific predict methods}
 
 \item{object}{a model fit of class "simple_ts", as returned by fit_simple_ts}
 }

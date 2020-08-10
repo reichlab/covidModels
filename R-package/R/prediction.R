@@ -16,6 +16,7 @@
 #'   as the "seed" attribute
 #' @param newdata numeric vector of new data to simulate forward from
 #' @param horizon number of time steps forwards to simulate
+#' @param ... other arguments passed on to model-specific predict methods
 #'
 #' @return an nsim by horizon matrix with simulated values
 #'
@@ -25,7 +26,8 @@ predict.simple_ts <- function(
   nsim = 1,
   seed = NULL,
   newdata,
-  horizon = 1
+  horizon = 1,
+  ...
 ) {
   if(is.null(seed)) {
     seed <- .Random.seed

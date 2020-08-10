@@ -22,7 +22,7 @@ fit_simple_ts(
 of class "ts".  See the help for stats::ts for more.}
 
 \item{model}{string specifying model to fit: one of 'quantile_baseline' or
-'local_trend'}
+'spline_smoother'}
 
 \item{transformation}{character specifying transformation type:
 "box-cox", "log", or "none".  See details for more.}

@@ -225,58 +225,34 @@ functions {
     matrix basis,
     real ar_beta,
     real beta_sd,
-    vector raw_beta,
-    real gamma_sd,
-    vector raw_gamma
+    vector raw_beta
   ) {
     real y_mean[T+forecast_horizon];
-    real y_mean_with_daily[T+forecast_horizon];
     
-    int day_index = 0;
-    real gamma_sum = 0.0;
     real prev_beta_diff;
     
     vector[n_basis] beta;
-    vector[7] gamma;
     
     // this is a calculation of
-    // implicitly, beta[0] = beta[1]
-    // beta[1] = beta_mean + beta_sd * raw_beta
-    // for i >= 2, beta[i] = beta[i-1] + (beta[i-1] - beta[i-2]) +  beta_sd * raw_beta[i]
-    // 
+    // beta = beta_mean + beta_sd * raw_beta
     for(i in 1:n_basis) {
       beta[i] = beta_sd * raw_beta[i];
       if(i > 1) {
         if(i == 2) {
-          prev_beta_diff = 0.0;
+          prev_beta_diff = beta[1];
         } else {
           prev_beta_diff = (beta[i-1] - beta[i-2]);
         }
-        beta[i] += beta[i - 1] + ar_beta * prev_beta_diff;
+        beta[i] = beta[i] + beta[i - 1] + ar_beta * prev_beta_diff;
       }
-    }
-    
-    for(i in 1:6) {
-      gamma[i] = log1p_exp(fma(gamma_sd, raw_gamma[i], 0.5413));
-      gamma_sum += gamma[i];
-    }
-    gamma[7] = 1.0;
-    gamma_sum += 1.0;
-    for(i in 1:7) {
-      gamma[i] = 7.0 * gamma[i]/gamma_sum;
     }
     
     y_mean = to_array_1d(basis * beta);
     for(i in 1:(T+forecast_horizon)) {
-      day_index += 1;
-      if(day_index > 7) {
-        day_index = 1;
-      }
-      y_mean[i] = log1p_exp(y_mean[i]);
-      y_mean_with_daily[i] = y_mean[i] * gamma[day_index] + 0.05;
+      y_mean[i] = log1p_exp(y_mean[i]) + 0.1;
     }
     
-    return y_mean_with_daily;
+    return y_mean;
   }
   
   real compute_phi(
@@ -320,6 +296,8 @@ transformed data {
   
   int n_basis = n_interior_knots + 8 - spline_order;
   matrix[T + forecast_horizon, n_basis] basis;
+  
+  real ar_beta = 1.0;
 
   // time points with observations or to forecast
   for(t in 1:(T+forecast_horizon)) {
@@ -340,16 +318,11 @@ transformed data {
 
 parameters {
   // beta vector
-  real ar_beta;
+//  real ar_beta;
   //real beta_mean;
   real<lower=0> beta_df;
   real beta_sd;
   vector[n_basis] raw_beta;
-  
-  // gamma vector
-  real gamma_mean;
-  real gamma_sd;
-  vector[6] raw_gamma;
   
   // negative binomial dispersion paramter
   real phi_mean;
@@ -359,11 +332,11 @@ parameters {
 
 transformed parameters {
   // parameters of nb distribution
-  real y_mean_with_daily[T+forecast_horizon];
+  real y_mean[T+forecast_horizon];
   real phi;
   
   // negative binomial mean
-  y_mean_with_daily = compute_mu(
+  y_mean = compute_mu(
     T,
     forecast_horizon,
     spline_order,
@@ -371,9 +344,7 @@ transformed parameters {
     basis,
     ar_beta,
     beta_sd,
-    raw_beta,
-    gamma_sd,
-    raw_gamma);
+    raw_beta);
   
   // negative binomial dispersion
   phi = compute_phi(phi_mean, phi_sd, raw_phi);
@@ -387,24 +358,12 @@ model {
 //  beta_sd ~ gamma(1.0, 10.0);
   ar_beta ~ normal(0, 1);
 
-  raw_gamma ~ normal(0, 1);
-
   raw_phi ~ normal(0, 1);
 //  phi_mean ~ normal(0.0, 10.0);
 //  phi_sd ~ gamma(1.0, 10.0);
 
   // data model
   for(t in 1:T) {
-    y[t] ~ neg_binomial_2(y_mean_with_daily[t], phi * y_mean_with_daily[t]);
-  }
-}
-
-generated quantities {
-  // data model
-  matrix[nsim, T+forecast_horizon] y_pred;
-  for(i in 1:nsim) {
-    for(t in 1:(T+forecast_horizon)) {
-      y_pred[i, t] = neg_binomial_2_rng(y_mean_with_daily[t], phi * y_mean_with_daily[t]);
-    }
+    y[t] ~ neg_binomial_2(y_mean[t], phi * y_mean[t]);
   }
 }

@@ -6,7 +6,7 @@
 #' @param ts_frequency frequency of time series.  Must be provided if y is not
 #'   of class "ts".  See the help for stats::ts for more.
 #' @param model string specifying model to fit: one of 'quantile_baseline' or
-#'   'local_trend'
+#'   'spline_smoother'
 #' @param transformation character specifying transformation type:
 #'   "box-cox", "log", or "none".  See details for more.
 #' @param transform_offset numeric offset used before the Box-Cox and log
@@ -50,7 +50,7 @@ fit_simple_ts <- function(
     ts_frequency <- frequency(y)
   }
   
-  model <- match.arg(model, c('quantile_baseline', 'local_trend'))
+  model <- match.arg(model, c('quantile_baseline', 'spline_smoother'))
   transformation <- match.arg(transformation, c('none', 'log', 'box-cox'))
   
   # Initial transformation, if necessary
@@ -73,8 +73,8 @@ fit_simple_ts <- function(
   # Get fit
   if(model == 'quantile_baseline') {
     simple_ts_fit <- fit_quantile_baseline(incidence = differenced_y, ...)
-  } else if(model == 'local_trend') {
-    simple_ts_fit <- fit_local_trend(incidence = differenced_y, ...)
+  } else if(model == 'spline_smoother') {
+    simple_ts_fit <- fit_spline_smoother(incidence = differenced_y, ...)
   }
   
   # Save information needed for prediction

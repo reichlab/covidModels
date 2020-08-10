@@ -4,7 +4,7 @@
 \alias{invert_initial_transform}
 \title{Invert an initial transformation of time series data.}
 \usage{
-invert_initial_transform(y, transformation, transform_offset = 0.5, bc_params)
+invert_initial_transform(y, transformation, transform_offset = 0.5, bc_lambda)
 }
 \arguments{
 \item{y}{a univariate time series or numeric vector.}

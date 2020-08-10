@@ -2,8 +2,7 @@ library(tidyverse)
 library(covidData)
 library(covidModels)
 
-# forecast_week_end_dates <- as.character(
-#   lubridate::ymd('2020-04-04') + seq(from = 0, length = 14)*7)
+required_locations <- readr::read_csv('https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-locations/locations.csv')
 
 current_wday <- lubridate::wday(Sys.Date(), label = TRUE)
 forecast_week_end_dates <- if(current_wday == 'Mon') {
@@ -13,6 +12,10 @@ forecast_week_end_dates <- if(current_wday == 'Mon') {
 } else {
   stop('unsupported current_wday')
 }
+
+# forecast_week_end_dates <- as.character(
+#   lubridate::ymd('2020-04-04') + seq(from = 0, length = 14)*7)
+
 
 for(forecast_week_end_date in forecast_week_end_dates) {
   forecast_week_end_date <- lubridate::ymd(forecast_week_end_date)
@@ -28,7 +31,8 @@ for(forecast_week_end_date in forecast_week_end_dates) {
           issue_date = as.character(forecast_week_end_date + 1),
           spatial_resolution = c('state', 'national'),
           temporal_resolution = 'weekly',
-          measure = measure)
+          measure = measure) %>%
+          dplyr::filter(location %in% required_locations$location)
         horizon <- 4L
         types <- c('inc', 'cum')
         required_quantiles <- c(0.01, 0.025, seq(0.05, 0.95, by = 0.05), 0.975, 0.99)
@@ -37,7 +41,8 @@ for(forecast_week_end_date in forecast_week_end_dates) {
           issue_date = as.character(forecast_week_end_date + 1),
           spatial_resolution = c('county', 'state', 'national'),
           temporal_resolution = 'weekly',
-          measure = measure)
+          measure = measure) %>%
+          dplyr::filter(location %in% required_locations$location)
         horizon <- 8L
         types <- 'inc'
         required_quantiles <- c(0.025, 0.100, 0.250, 0.500, 0.750, 0.900, 0.975)

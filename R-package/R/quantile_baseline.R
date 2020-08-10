@@ -58,6 +58,9 @@ fit_quantile_baseline <- function(
     symmetrize = TRUE,
     window_size = length(incidence) - 1,
     ...) {
+  if(is.na(window_size)) {
+    window_size <- length(incidence) - 1
+  }
   if(window_size >= length(incidence)) {
     window_size <- length(incidence) - 1
   }
@@ -83,7 +86,7 @@ fit_quantile_baseline <- function(
 #' of incident and cumulative deaths
 #'
 #' @export
-old_predict.quantile_baseline <- function(
+predict.quantile_baseline <- function(
   quantile_baseline,
   inc_data,
   cum_data=NULL,
@@ -172,21 +175,21 @@ old_predict.quantile_baseline <- function(
 #' Predict future disease incidence by resampling one-step-ahead forecasts
 #'
 #' @param quantile_baseline a quantile_baseline fit object
-#' @param inc_data numeric vector of length at least one with incident counts
-#' @param cum_data numeric vector of length at least one with cumulative counts
-#' @param quantiles quantile levels for which  to generate predictions
+#' @param newdata numeric vector of length at least one with incident counts
 #' @param horizon number of time steps forward to predict
-#' @param num_samples number of samples to use for generating predictions at
+#' @param nsim number of samples to use for generating predictions at
 #' horizons greater than 1
+#' @param ... mop up unused arguments
 #'
 #' @return matrix of simulated incidence with nsim rows and horizon columns
 #'
 #' @export
-predict.quantile_baseline <- function(
+new_predict.quantile_baseline <- function(
   quantile_baseline,
   newdata,
   horizon,
-  nsim) {
+  nsim,
+  ...) {
   # storage space for result
   result <- matrix(NA_real_, nrow = nsim, ncol = horizon)
   
