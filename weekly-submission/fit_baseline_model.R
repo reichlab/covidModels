@@ -1,20 +1,16 @@
 library(tidyverse)
 library(covidData)
 library(covidModels)
+library(here)
+setwd(here())
 
 required_locations <- readr::read_csv('https://raw.githubusercontent.com/reichlab/covid19-forecast-hub/master/data-locations/locations.csv')
 
-current_wday <- lubridate::wday(Sys.Date(), label = TRUE)
-forecast_week_end_dates <- if(current_wday == 'Mon') {
-  as.character(Sys.Date() - 2)
-} else if(current_wday == 'Tue') {
-  as.character(Sys.Date() - 3)
-} else {
-  stop('unsupported current_wday')
-}
-
-# forecast_week_end_dates <- as.character(
-#   lubridate::ymd('2020-04-04') + seq(from = 0, length = 14)*7)
+# Figure out what day it is; forecast creation date is set to a Monday,
+# even if we are delayed and create it Tuesday morning.
+forecast_week_end_dates <- as.character(
+  lubridate::floor_date(Sys.Date(), unit = "week") - 1
+)
 
 
 for(forecast_week_end_date in forecast_week_end_dates) {
