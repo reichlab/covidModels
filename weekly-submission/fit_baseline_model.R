@@ -29,7 +29,7 @@ for(forecast_week_end_date in forecast_week_end_dates) {
           temporal_resolution = 'weekly',
           measure = measure) %>%
           dplyr::filter(location %in% required_locations$location)
-        horizon <- 4L
+        horizon <- 8L
         types <- c('inc', 'cum')
         required_quantiles <- c(0.01, 0.025, seq(0.05, 0.95, by = 0.05), 0.975, 0.99)
       } else if(measure == 'cases') {
@@ -125,7 +125,7 @@ for(forecast_week_end_date in forecast_week_end_dates) {
         spatial_resolution = c('state', 'national'),
         temporal_resolution = 'weekly',
         measure = measure)
-      horizon <- 4L
+      horizon <- 8L
       types <- c('inc', 'cum')
       required_quantiles <- c(0.01, 0.025, seq(0.05, 0.95, by = 0.05), 0.975, 0.99)
     } else if(measure == 'cases') {
