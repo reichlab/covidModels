@@ -35,27 +35,36 @@ for (row_ind in rev(seq_len(nrow(analysis_combinations)))) {
   transform_fun <- analysis_combinations$transform_fun[row_ind]
   temporal_resolution <- analysis_combinations$temporal_resolution[row_ind]
 
-  filename <- paste0(output_path, "/submit-fable-",
-    forecast_week_end_date, "_",
-    location, "_",
-    model, "_",
-    transform_fun, "_",
-    temporal_resolution,
-    ".sh")
+  results_filename <- paste0(save_path,
+    "model_", model, "-transform_", transform_fun, "-temporal_resolution_", temporal_resolution, "/",
+    lubridate::ymd(forecast_week_end_date) + 2,
+    "-model_", model, "-transform_", transform_fun, "-temporal_resolution_", temporal_resolution,
+    "-", location,
+    ".csv")
+  if (file.exists(results_filename)) {
+    print(paste0("Skipping ", results_filename))
+  } else {
+    filename <- paste0(output_path, "/submit-fable-",
+      forecast_week_end_date, "_",
+      location, "_",
+      model, "_",
+      transform_fun, "_",
+      temporal_resolution,
+      ".sh")
+      
+    requestCmds <- "#!/bin/bash\n"
+    requestCmds <- paste0(requestCmds,
+      "#BSUB -n 1 # how many cores we want for our job\n",
+      "#BSUB -R span[hosts=1] # ask for all the cores on a single machine\n",
+      "#BSUB -R rusage[mem=5000] # ask for memory\n",
+      "#BSUB -o ", lsfoutfilename, " # log LSF output to a file\n",
+      "#BSUB -W 2:00 # run time\n",
+      "#BSUB -q short # which queue we want to run in\n")
 
-  requestCmds <- "#!/bin/bash\n"
-  requestCmds <- paste0(requestCmds,
-    "#BSUB -n 1 # how many cores we want for our job\n",
-    "#BSUB -R span[hosts=1] # ask for all the cores on a single machine\n",
-    "#BSUB -R rusage[mem=5000] # ask for memory\n",
-    "#BSUB -o ", lsfoutfilename, " # log LSF output to a file\n",
-    "#BSUB -W 2:00 # run time\n",
-    "#BSUB -q short # which queue we want to run in\n")
-
-  cat(requestCmds, file = filename)
-  cat("module load gcc/8.1.0\n", file = filename, append = TRUE)
-  cat("module load R/4.0.0_gcc\n", file = filename, append = TRUE)
-  cat(paste0("R CMD BATCH --vanilla \'--args ",
+    cat(requestCmds, file = filename)
+    cat("module load gcc/8.1.0\n", file = filename, append = TRUE)
+    cat("module load R/4.0.0_gcc\n", file = filename, append = TRUE)
+    cat(paste0("R CMD BATCH --vanilla \'--args ",
       forecast_week_end_date, " ",
       location, " ",
       model, " ",
@@ -70,6 +79,7 @@ for (row_ind in rev(seq_len(nrow(analysis_combinations)))) {
       temporal_resolution, ".Rout"),
     file = filename, append = TRUE)
 
-  bsubCmd <- paste0("bsub < ", filename)
-  system(bsubCmd)
+    bsubCmd <- paste0("bsub < ", filename)
+    system(bsubCmd)
+  }
 }
