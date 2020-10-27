@@ -4,7 +4,7 @@ library(zeallot)
 library(covidData)
 library(googledrive)
 
-submissions_root <- '~/research/epi/covid/covidModels/weekly-submission/'
+submissions_root <- '~/research/epi/covid/covidModels/weekly-submission/forecasts/'
 
 plots_root <- '~/research/epi/covid/covidModels/weekly-submission/plots/'
 
@@ -20,7 +20,7 @@ plots_root <- '~/research/epi/covid/covidModels/weekly-submission/plots/'
 #  stop('unsupported current_wday')
 #}
 
-forecast_week_end_date <- lubridate::ymd('2020-05-30')
+forecast_week_end_date <- lubridate::ymd('2020-10-10') - 21
 
 forecast_date <- forecast_week_end_date + 2
 
@@ -32,7 +32,11 @@ if(!file.exists(day_plots_root)) {
 submission_dates <- forecast_date + seq(from = -6, to = 0)
 
 # List of candidate models for inclusion in ensemble
-candidate_model_abbreviations_to_include <- 'model_ETS-transform_box_cox-temporal_resolution_weekly'
+candidate_model_abbreviations_to_include <-
+  list.dirs(submissions_root, full.names = FALSE)
+candidate_model_abbreviations_to_include <-
+  candidate_model_abbreviations_to_include[
+    nchar(candidate_model_abbreviations_to_include) > 0]
 
 fips_codes <- covidData::fips_codes %>%
   dplyr::mutate(

@@ -16,7 +16,7 @@ forecast_week_end_dates <- as.character(
 for(forecast_week_end_date in forecast_week_end_dates) {
   forecast_week_end_date <- lubridate::ymd(forecast_week_end_date)
   
-  results_path <- paste0('weekly-submission/COVIDhub-baseline/',
+  results_path <- paste0('weekly-submission/forecasts/COVIDhub-baseline/',
                          forecast_week_end_date + 2,
                          '-COVIDhub-baseline.csv')
   if(!file.exists(results_path)) {
@@ -110,7 +110,7 @@ for(forecast_week_end_date in forecast_week_end_dates) {
 for(forecast_week_end_date in forecast_week_end_dates) {
   forecast_week_end_date <- lubridate::ymd(forecast_week_end_date)
   
-  results_path <- paste0('weekly-submission/COVIDhub-baseline/',
+  results_path <- paste0('weekly-submission/forecasts/COVIDhub-baseline/',
                          forecast_week_end_date + 2,
                          '-COVIDhub-baseline.csv')
   if(!file.exists(results_path)) {
