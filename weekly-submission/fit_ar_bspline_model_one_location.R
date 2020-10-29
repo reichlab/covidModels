@@ -5,7 +5,7 @@ library(covidModels)
 library(here)
 setwd(here())
 
-source("rstan_functions.r")
+source("weekly-submission/rstan_functions.r")
 
 args <- commandArgs(trailingOnly = TRUE)
 #args <- c('2020-05-30', 'ETS', 'box_cox', 'weekly')
@@ -29,7 +29,7 @@ if(!dir.exists(forecasts_dir)) {
   dir.create(forecasts_dir)
 }
 
-results_path <- paste0(model_dir,
+forecasts_path <- paste0(forecasts_dir,
   forecast_week_end_date + 2,
   '-', full_model_case, '-', location, '.csv')
 
@@ -52,7 +52,7 @@ if (temporal_resolution == "weekly") {
 nsim <- 5000L
 
 # Get the model fits and predictions
-if(!file.exists(results_path)) {
+if(!file.exists(forecasts_path)) {
   results <- NULL
 
   # Separate fits for each measure
@@ -86,7 +86,7 @@ if(!file.exists(results_path)) {
     location_data$inc[location_data$inc < 0] <- 0.0
 
     # subset to start one time point before the first case
-    if (any(location_data$cum) > 0) {
+    if (any(location_data$cum > 0)) {
       start_date <- max(
         lubridate::ymd(min(location_data$date)) + 7,
         lubridate::ymd(min(location_data$date[location_data$cum > 0])) - 1*7)
@@ -121,7 +121,9 @@ if(!file.exists(results_path)) {
         dplyr::select(-type, -quantile) %>%
         as.matrix()
     } else {
-      # set up knots every 2 weeks
+      # parameters specifying model, including knots every 2 weeks
+      forecast_horizon <- horizon * ts_frequency
+      spline_order <- 3L
       knot_frequency <- 2L * ts_frequency
       all_knots <- seq(
         from = nrow(data) %% knot_frequency,
@@ -129,10 +131,6 @@ if(!file.exists(results_path)) {
         by = knot_frequency)
       boundary_knots <- all_knots[c(1, length(all_knots))]
       interior_knots <- all_knots[-c(1, length(all_knots))]
-
-      # other parameters specifying model
-      forecast_horizon <- horizon * ts_frequency
-      spline_order <- 3L
 
       # create data for stan model and output to file
       stan_data <- list(
@@ -149,11 +147,10 @@ if(!file.exists(results_path)) {
         "data_dump_", forecast_week_end_date,
         "_", location,
         "_", temporal_resolution,
-        ".json")
+        ".R")
       data_dump_file <- paste0(
         cmdstan_root,
-        "/models/ar_bspline_model_", temporal_resolution,
-        "/", data_dump_file_base)
+        "/models/ar_bspline_", temporal_resolution, "_model/", data_dump_file_base)
       # cat(
       #   jsonlite::toJSON(stan_data),
       #   file = data_dump_file
@@ -165,16 +162,16 @@ if(!file.exists(results_path)) {
       )
 
       # parameter estimation
-      setwd(paste0(cmdstan_root, "/models/ar_bspline_model_", temporal_resolution))
+      setwd(paste0(cmdstan_root, "/models/ar_bspline_", temporal_resolution, "_model"))
       param_estimates_file <- paste0(
-        output_path,
+        estimates_dir,
         "ar_bspline_param_estimates_", forecast_week_end_date,
         "_location_", location,
         "_measure_", measure, ".csv")
-      system(paste0("./ar_bspline_model_", temporal_resolution,
+      system(paste0("./ar_bspline_", temporal_resolution, "_model",
         " optimize data file=", data_dump_file_base,
         #" init=", init_dump_file_base,
-        " output file=", output_file))
+        " output file=", param_estimates_file))
     }
   }
 }

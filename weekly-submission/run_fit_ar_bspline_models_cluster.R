@@ -49,10 +49,9 @@ for (row_ind in rev(seq_len(nrow(analysis_combinations)))[1]) {
       location, " ",
       temporal_resolution, " ",
       "\' /home/er71a/covidModels/weekly-submission/fit_ar_bspline_model_one_location.R ",
-      output_path, "/output-fable-",
+      output_path, "/output-ar_bspline_", temporal_resolution, "_",
       forecast_week_end_date, "_",
-      location, "_",
-      temporal_resolution, ".Rout"),
+      location, ".Rout"),
     file = filename, append = TRUE)
 
   bsubCmd <- paste0("bsub < ", filename)
