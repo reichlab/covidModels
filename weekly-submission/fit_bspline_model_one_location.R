@@ -22,7 +22,7 @@ if (cluster_local == "cluster") {
   cmdstan_root <- "~/cmdstan"
   estimates_dir <- paste0('/project/uma_nicholas_reich/covidModels/estimates/',
     full_model_case, '/')
-  forecasts_dir <- paste0('/project/uma_nicholas_reich/covidModels/forecasts/',
+  forecasts_dir <- paste0('/project/uma_nicholas_reich/covidModels/forecasts-by-location/',
     full_model_case, '/')
 } else {
   cmdstan_root <- "~/research/tools/cmdstan"
@@ -178,7 +178,7 @@ if (!file.exists(forecasts_path)) {
 
       n_basis <- stan_data$n_interior_knots + 8 - stan_data$spline_order
       stan_init <- list(
-        beta_df = 10.0,
+#        beta_df = 10.0,
         beta_sd = 1.0,
         raw_beta = rep(0.0, n_basis),
         trend_sd = 1.0,
@@ -223,14 +223,19 @@ if (!file.exists(forecasts_path)) {
         " optimize iter=10000 data file=", data_dump_file_base,
         " init=", init_dump_file_base,
         " output file=", param_estimates_file))
-    
+      
       # forecasting
-      param_estimates <- read_csv(param_estimates_file, skip = 28) %>%
+      skiplines <- readLines(param_estimates_file) %>%
+        substr(1, 1) %>%
+        grepl(pattern = "#", fixed = TRUE) %>%
+	      (function(x) { min(which(!x)) - 1 })
+      param_estimates <- read_csv(param_estimates_file, skip = skiplines) %>%
         as.data.frame() %>%
         as.vector() %>%
         unlist()
       stan_forecast_data <- stan_data
-      param_names <- c("beta_df", "beta_sd", "raw_beta", "trend_sd",
+#      param_names <- c("beta_df", "beta_sd", "raw_beta", "trend_sd",
+      param_names <- c("beta_sd", "raw_beta", "trend_sd",
         "raw_trend", "quad_sd", "raw_quad", "phi_mean", "phi_sd", "raw_phi")
       for (param_name in param_names) {
         stan_forecast_data[[param_name]] <- param_estimates[
@@ -258,7 +263,11 @@ if (!file.exists(forecasts_path)) {
         " init=", init_dump_file_base,
         " output file=", predictions_file))
       
-      forecast_inc_trajectories <- read_csv(predictions_file, skip = 28) %>%
+      skiplines <- readLines(predictions_file) %>%
+        substr(1, 1) %>%
+        grepl(pattern = "#", fixed = TRUE) %>%
+        (function(x) { min(which(!x)) - 1 })
+      forecast_inc_trajectories <- read_csv(predictions_file, skip = skiplines) %>%
         as.data.frame() %>%
         as.vector() %>%
         unlist()
@@ -352,6 +361,12 @@ if (!file.exists(forecasts_path)) {
         results,
         measure_results
       )
+      
+      # clean up
+      unlink(data_dump_file)
+      unlink(init_dump_file)
+      unlink(param_estimates_file)
+      unlink(predictions_file)
     }
   }
   
