@@ -1,3 +1,4 @@
+library(doParallel)
 library(jsonlite)
 library(tidyverse)
 library(covidData)
