@@ -12,7 +12,7 @@ source("weekly-submission/rstan_functions.r")
 args <- commandArgs(trailingOnly = TRUE)
 #args <- c('2020-10-10', 'US', 'SARIMA_mle', 'weekly', 'local')
 #args <- c('2020-10-10', 'US', 'local_trend', 'daily', 'local')
-#args <- c('2020-10-10', 'US', 'SARIMA_mle', 'weekly', 'local')
+#args <- c('2020-10-10', 'US', 'SARIMA_mle', 'daily', 'local')
 forecast_week_end_date <- lubridate::ymd(args[1])
 location <- args[2]
 model <- args[3]
@@ -26,7 +26,7 @@ if (full_model_case == "SARIMA_mle_weekly") {
     y = ts(1.0, frequency = 1),
     transformation = c("none", "box-cox", "log"),
     transform_offset = c(0.0, 0.49),
-    max_d = 2,
+    max_d = 1,
     max_D = 0,
     include_intercept = FALSE,
     max_p_ar = 4,
@@ -34,7 +34,7 @@ if (full_model_case == "SARIMA_mle_weekly") {
     max_P_ar = 0,
     max_Q_ma = 0,
     min_order = 1,
-    max_order = 6,
+    max_order = 5,
     stationary = 1
   ) %>%
     dplyr::filter(
@@ -49,8 +49,8 @@ if (full_model_case == "SARIMA_mle_weekly") {
     y = ts(1.0, frequency = 7),
     transformation = c("none", "box-cox", "log"),
     transform_offset = c(0.0, 0.49),
-    max_d = 2,
-    max_D = 2,
+    max_d = 1,
+    max_D = 1,
     include_intercept = FALSE,
     max_p_ar = 4,
     max_q_ma = 4,
@@ -63,7 +63,9 @@ if (full_model_case == "SARIMA_mle_weekly") {
     dplyr::filter(
       transformation == "none" & transform_offset == 0.0 |
       transformation == "box-cox" & transform_offset == 0.49 |
-      transformation == "log" & transform_offset == 0.49
+      transformation == "log" & transform_offset == 0.49,
+      D + P_ar + Q_ma <= 2,
+      d + p_ar + q_ma + D + P_ar + Q_ma <= 5
     )
   ts_frequency <- 7L
   crossval_initial_window <- 28L
@@ -118,6 +120,7 @@ if (temporal_resolution == "weekly") {
 # number of simulations for sampling from predictive distributions
 nsim <- 5000L
 
+tic <- Sys.time()
 # Get the model fits and predictions
 if (!file.exists(forecasts_path)) {
   results <- NULL
@@ -198,7 +201,7 @@ if (!file.exists(forecasts_path)) {
         crossval_results <- crossvalidate_lssm(
           y = location_data$inc,
           ts_frequency = ts_frequency,
-          initial_window = crossval_initial_window,
+          initial_window = max(crossval_initial_window, nrow(location_data) - 10 * ts_frequency),
           crossval_start_horizon = 1,
           crossval_end_horizon = min(
             horizon * ts_frequency,
@@ -216,7 +219,7 @@ if (!file.exists(forecasts_path)) {
           dplyr::group_by_at(.vars = vars(-fold, -log_score, -run_time)) %>%
           dplyr::summarize(
             mean_log_score = mean(log_score),
-            se_log_score = sd(log_score),
+            sd_log_score = sd(log_score),
             run_time = sum(run_time)
           ) %>%
           dplyr::arrange(desc(mean_log_score))
@@ -338,14 +341,10 @@ if (!file.exists(forecasts_path)) {
         results,
         measure_results
       )
-
-      # clean up
-      unlink(data_dump_file)
-      unlink(init_dump_file)
-      unlink(param_estimates_file)
-      unlink(predictions_file)
     }
   }
   
   write.csv(results, file = forecasts_path, row.names = FALSE)
 }
+toc <- Sys.time()
+toc - tic
