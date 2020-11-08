@@ -15,6 +15,7 @@ args <- commandArgs(trailingOnly = TRUE)
 #args <- c('2020-10-10', 'US', 'SARIMA_mle', 'daily', 'local')
 #args <- c('2020-05-30', '01001', 'SARIMA_mle', 'weekly', 'local')
 #args <- c('2020-05-30', '01', 'SARIMA_mle', 'weekly', 'local')
+#args <- c('2020-10-03', '54017', 'SARIMA_mle', 'daily', 'local')
 forecast_week_end_date <- lubridate::ymd(args[1])
 location <- args[2]
 model <- args[3]
@@ -190,7 +191,9 @@ if (!file.exists(forecasts_path)) {
         dplyr::select(-type, -quantile) %>%
         as.matrix()
     } else {
-      if (nrow(location_data) < crossval_initial_window + 2 * ts_frequency) {
+      effective_crossval_init_window <-
+        max(crossval_initial_window, nrow(location_data) - 10 * ts_frequency)
+      if (nrow(location_data) < effective_crossval_init_window + 2 * ts_frequency) {
         crossval_results <- NA
 
         models_to_use <- tune_grid %>%
@@ -201,11 +204,11 @@ if (!file.exists(forecasts_path)) {
         crossval_results <- crossvalidate_lssm(
           y = location_data$inc,
           ts_frequency = ts_frequency,
-          initial_window = max(crossval_initial_window, nrow(location_data) - 10 * ts_frequency),
+          initial_window = effective_crossval_init_window,
           crossval_start_horizon = 1,
           crossval_end_horizon = min(
             horizon * ts_frequency,
-            nrow(location_data) - crossval_initial_window - 1L),
+            nrow(location_data) - effective_crossval_init_window - ts_frequency),
           fixed_window = FALSE,
           crossval_frequency = ts_frequency,
           tune_grid,
