@@ -13,6 +13,8 @@ args <- commandArgs(trailingOnly = TRUE)
 #args <- c('2020-10-10', 'US', 'SARIMA_mle', 'weekly', 'local')
 #args <- c('2020-10-10', 'US', 'local_trend', 'daily', 'local')
 #args <- c('2020-10-10', 'US', 'SARIMA_mle', 'daily', 'local')
+#args <- c('2020-05-30', '01001', 'SARIMA_mle', 'weekly', 'local')
+#args <- c('2020-05-30', '01', 'SARIMA_mle', 'weekly', 'local')
 forecast_week_end_date <- lubridate::ymd(args[1])
 location <- args[2]
 model <- args[3]
@@ -73,13 +75,11 @@ if (full_model_case == "SARIMA_mle_weekly") {
 
 # path to cmdstan and where to save model parameter estimates and forecasts
 if (cluster_local == "cluster") {
-  cmdstan_root <- "~/cmdstan"
   estimates_dir <- paste0('/project/uma_nicholas_reich/covidModels/estimates/',
     full_model_case, '/')
   forecasts_dir <- paste0('/project/uma_nicholas_reich/covidModels/forecasts-by-location/',
     full_model_case, '/')
 } else {
-  cmdstan_root <- "~/research/tools/cmdstan"
   estimates_dir <- paste0(
     '/home/eray/research/epi/covid/covidModels/weekly-submission/estimates/',
     full_model_case, '/')
@@ -209,11 +209,13 @@ if (!file.exists(forecasts_path)) {
           fixed_window = FALSE,
           crossval_frequency = ts_frequency,
           tune_grid,
-          verbose = FALSE,
+          verbose = TRUE,
           parallel = FALSE
         )
         crossval_results$log_score[
-          is.infinite(crossval_results$log_score)] <- -Inf
+          is.infinite(crossval_results$log_score) |
+          is.na(crossval_results$log_score)
+        ] <- -Inf
 
         crossval_summary <- crossval_results %>%
           dplyr::group_by_at(.vars = vars(-fold, -log_score, -run_time)) %>%
