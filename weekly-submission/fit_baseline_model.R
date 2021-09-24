@@ -127,10 +127,11 @@ for (forecast_week_end_date in forecast_week_end_dates) {
             inc_data = location_data$inc,
             cum_data = location_data$cum,
             quantiles = required_quantiles,
-            horizon = horizon,
+            horizon = effective_horizon,
             num_samples = 100000
           ) %>%
-            dplyr::filter(type %in% types) %>%
+            dplyr::mutate(horizon = horizon - horizon_adjustment) %>%
+            dplyr::filter(horizon > 0, type %in% types) %>%
             dplyr::transmute(
               forecast_date = as.character(forecast_week_end_date + 2),
               target = paste0(horizon, " ", output_time_unit, " ahead ", type, " ", output_target),
