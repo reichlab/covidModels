@@ -80,6 +80,9 @@ for (forecast_week_end_date in forecast_week_end_dates) {
             non_zero_inds <- which(location_data$inc != 0)
             if (length(non_zero_inds) > 0) {
               first_non_zero_ind <- min(non_zero_inds)
+              if (first_non_zero_ind == nrow(location_data)) {
+                first_non_zero_ind <- first_non_zero_ind - 2
+              }
               location_data <- location_data[first_non_zero_ind:nrow(location_data), ]
             }
           }
