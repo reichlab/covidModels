@@ -81,7 +81,7 @@ for (forecast_week_end_date in forecast_week_end_dates) {
             if (length(non_zero_inds) > 0) {
               first_non_zero_ind <- min(non_zero_inds)
               if (first_non_zero_ind == nrow(location_data)) {
-                first_non_zero_ind <- first_non_zero_ind - 2
+                first_non_zero_ind <- first_non_zero_ind - 1
               }
               location_data <- location_data[first_non_zero_ind:nrow(location_data), ]
             }
@@ -93,13 +93,8 @@ for (forecast_week_end_date in forecast_week_end_dates) {
             location_data$cum <- 0
             start_date <- "2020-10-01"
           } else {
-            if (all(location_data$cum == 0)) {
-              start_date <- lubridate::ymd(min(location_data$date)) + 7
-            } else {
-              start_date <- max(
-                lubridate::ymd(min(location_data$date)) + 7,
-                lubridate::ymd(min(location_data$date[location_data$cum > 0])) - 2*7)
-            }
+            # keep everything
+            start_date <- lubridate::ymd(min(location_data$date))
           }
           
           location_data <- location_data %>%
