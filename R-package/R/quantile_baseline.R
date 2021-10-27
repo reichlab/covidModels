@@ -93,6 +93,7 @@ predict.quantile_baseline <- function(
   quantiles,
   horizon,
   num_samples) {
+  symmetrize <- attr(quantile_baseline, "symmetrize")
   
   last_inc <- tail(inc_data, 1)
   last_cum <- tail(cum_data, 1)
@@ -140,7 +141,11 @@ predict.quantile_baseline <- function(
     sampled_inc_raw <- sampled_inc_raw + sampled_inc_diffs
     
     # force median difference = 0
-    sampled_inc_corrected <- sampled_inc_raw - (median(sampled_inc_raw) - last_inc)
+    if (symmetrize) {
+      sampled_inc_corrected <- sampled_inc_raw - (median(sampled_inc_raw) - last_inc)
+    } else {
+      sampled_inc_corrected <- sampled_inc_raw
+    }
     
     # force non-negative incidence
     sampled_inc_corrected <- pmax(sampled_inc_corrected, 0)
