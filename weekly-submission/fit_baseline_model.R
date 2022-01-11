@@ -166,7 +166,7 @@ for (forecast_week_end_date in forecast_week_end_dates) {
   }
 
   # plot forecasts
-  covidEnsembles::plot_forecasts_single_model(
+  covidModels::plot_forecasts_single_model(
     submissions_root = 'weekly-submission/forecasts/',
     plots_root = 'weekly-submission/COVIDhub-baseline-plots/',
     forecast_date = forecast_week_end_date + 2,
