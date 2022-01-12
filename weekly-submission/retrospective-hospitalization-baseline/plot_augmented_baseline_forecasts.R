@@ -20,7 +20,7 @@ forecast_dates <- seq.Date(
   by = 7)
 
 for (forecast_date in as.character(forecast_dates)) {
-  covidEnsembles::plot_forecasts_single_model(
+  covidModels::plot_forecasts_single_model(
     submissions_root = submissions_root,
     plots_root = plots_root,
     forecast_date = as.Date(forecast_date),
