@@ -1,5 +1,4 @@
 library(tidyverse)
-library(covidEnsembles)
 library(covidData)
 library(covidModels)
 library(here)
