@@ -12,11 +12,18 @@ forecast_week_end_dates <- as.character(
   lubridate::floor_date(Sys.Date(), unit = "week") - 1
 )
 
+if (!dir.exists('weekly-submission/COVIDhub-baseline-plots/')) {
+  dir.create('weekly-submission/COVIDhub-baseline-plots/', recursive = TRUE)
+}
 
 for (forecast_week_end_date in forecast_week_end_dates) {
   forecast_week_end_date <- lubridate::ymd(forecast_week_end_date)
   
-  results_path <- paste0('weekly-submission/forecasts/COVIDhub-baseline/',
+  results_dir <- 'weekly-submission/forecasts/COVIDhub-baseline/'
+  if (!dir.exists(results_dir)) {
+    dir.create(results_dir, recursive = TRUE)
+  }
+  results_path <- paste0(results_dir,
                          forecast_week_end_date + 2,
                          '-COVIDhub-baseline.csv')
   if (TRUE) {
