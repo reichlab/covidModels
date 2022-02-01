@@ -20,7 +20,7 @@ Following are the components involved.
 
 
 ## Manually starting a run
-One can manually invoke a `run-baseline` run by simply starting the below EC2 instance from the AWS EC2 console. The script will stop the instance when it's done.
+One can manually invoke a `run-baseline` run by simply starting the below EC2 instance from the AWS EC2 console. It will run the script when the machine is up, and then the script will stop the instance when it's done.
 
 
 ## AWS EC2 instance
