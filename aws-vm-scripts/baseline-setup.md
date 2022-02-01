@@ -9,15 +9,21 @@ ec2-user
 
 
 # For reference: Linux version
-`uname -a`
+```bash
+uname -a
+```
 Linux ip-172-31-94-18.ec2.internal 5.10.75-79.358.amzn2.x86_64 #1 SMP Thu Nov 4 21:08:30 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux
 
 
-`cat /proc/version`
+```bash
+cat /proc/version
+```
 Linux version 5.10.75-79.358.amzn2.x86_64 (mockbuild@ip-10-0-40-76) (gcc10-g<cc (GCC) 10.3.1 20210422 (Red Hat 10.3.1-1), GNU ld version 2.35-21.amzn2.0.1) #1 SMP Thu Nov 4 21:08:30 UTC 2021
 
 
-`cat /etc/os-release`
+```bash
+cat /etc/os-release
+```
 NAME="Amazon Linux"
 VERSION="2"
 ID="amzn"
@@ -29,7 +35,9 @@ CPE_NAME="cpe:2.3:o:amazon:amazon_linux:2"
 HOME_URL="https://amazonlinux.com/"
 
 
-`bash --version`
+```bash
+bash --version
+```
 GNU bash, version 4.2.46(2)-release (x86_64-koji-linux-gnu)
 Copyright (C) 2011 Free Software Foundation, Inc.
 License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
@@ -46,8 +54,8 @@ Follow the instructions [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGui
 `sudo timedatectl set-timezone UTC`
 
 
-# [skip] install python3
-We decided this version is ok:
+# Install python3
+We decided the pre-installed version is ok, so no install is necessary:
 
 `python3 --version`
 Python 3.7.10
@@ -100,7 +108,9 @@ sudo cp /usr/local/lib/libgdal.so.28* /usr/lib64/
 # Install R4
 `sudo amazon-linux-extras install R4 -y`
 
-`R --version`
+```R
+R --version
+```
 R version 4.0.2 (2020-06-22) -- "Taking Off Again"
 Copyright (C) 2020 The R Foundation for Statistical Computing
 Platform: x86_64-koji-linux-gnu (64-bit)
