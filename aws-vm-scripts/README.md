@@ -28,7 +28,7 @@ I’ve configured an EC2 instance to run the Bash script `run-baseline.sh` when 
 
 The instance's account is the default `ec2-user`, which is the owner of the EBS volume's cloned repos.
 
-To do development on the instance, first edit its user data script (scroll to the bottom) to comment out the call `run-baseline. Then start the instance, do your development, stop the instance, and then re-edit the user data to restore the script call. The `sandbox.sh` script may be useful for debugging.
+To do development on the instance, first edit its user data script (scroll to the bottom) to comment out the call `run-baseline`. Then start the instance, do your development, stop the instance, and then re-edit the user data to restore the script call. The `sandbox.sh` script may be useful for debugging.
 
 
 ### AWS EC2 user data script
