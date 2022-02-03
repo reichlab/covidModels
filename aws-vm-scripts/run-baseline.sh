@@ -42,7 +42,7 @@ slack_upload() {
 slack_message "$0 entered. date=$(date), uname=$(uname -a)"
 
 #
-# update covidModels and covidData repos (covid19-forecast-hub is updated post-make)
+# update covidModels and covidData repos (the covid19-forecast-hub fork is updated post-make)
 #
 
 COVID_MODELS_DIR="/data/covidModels"
@@ -92,8 +92,8 @@ if [ $? -eq 0 ]; then
     # create and push branch with new CSV file
     HUB_DIR="/data/covid19-forecast-hub"
     cd "${HUB_DIR}"
-    git fetch upstream # recall: clone of fork https://github.com/reichlabmachine/covid19-forecast-hub
-    git pull
+    git fetch upstream # pull down the latest source from original repo - https://github.com/reichlab/covid19-forecast-hub
+    git pull upstream master  # update fork from original repo to keep up with their changes
 
     MONDAY_DATE=$(basename ${PDF_DIR})            # e.g., 2022-01-31
     NEW_BRANCH_NAME="baseline-${MONDAY_DATE//-/}" # remove '-'. per https://tldp.org/LDP/abs/html/string-manipulation.html

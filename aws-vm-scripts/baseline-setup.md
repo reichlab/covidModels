@@ -165,7 +165,8 @@ git clone https://github.com/reichlab/covidData.git
 
 # clone the covid19-forecast-hub fork and do a one-time setup of sync
 git clone https://github.com/reichlabmachine/covid19-forecast-hub.git
+cd /data/covid19-forecast-hub
 git remote add upstream https://github.com/reichlab/covid19-forecast-hub.git
 git fetch upstream
-git pull
+git pull upstream master
 ```
