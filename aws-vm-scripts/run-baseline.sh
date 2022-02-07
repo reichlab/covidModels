@@ -5,35 +5,13 @@
 # - run as `ec2-user`, not root
 #
 
-#
-# define slack communication functions
-# - note: for simplicity we just use curl, which does not support formatted messages
-# - credentials: requires a ~/.env file that contains two variables:
-#   SLACK_API_TOKEN=xoxb-...
-#   CHANNEL_ID=C...
-#
-
-# per https://stackoverflow.com/questions/19331497/set-environment-variables-from-file-of-key-value-pairs
+# set environment variables - per https://stackoverflow.com/questions/19331497/set-environment-variables-from-file-of-key-value-pairs
 set -o allexport
 source ~/.env
 set +o allexport
 
-slack_message() {
-  # post a message to slack. args: $1: message to post
-  echo "slack_message: $1"
-  curl -d "text=$1" -d "channel=${CHANNEL_ID}" -H "Authorization: Bearer ${SLACK_API_TOKEN}" -X POST https://slack.com/api/chat.postMessage
-}
-
-slack_upload() {
-  # upload a file to slack. args: $1: file to upload
-  FILE=$1
-  if [ -f ${FILE} ]; then
-    echo "slack_upload: ${FILE}"
-    curl -F file=@"${FILE}" -F "channels=${CHANNEL_ID}" -H "Authorization: Bearer ${SLACK_API_TOKEN}" https://slack.com/api/files.upload
-  else
-    echo >&2 "slack_upload: FILE not found: ${FILE}"
-  fi
-}
+# load slack functions - per https://stackoverflow.com/questions/10822790/can-i-call-a-function-of-a-shell-script-from-another-shell-script/42101141#42101141
+source $(dirname "$0")/slack.sh
 
 #
 # start
@@ -91,9 +69,10 @@ if [ $? -eq 0 ]; then
 
     # create and push branch with new CSV file
     HUB_DIR="/data/covid19-forecast-hub"
+    slack_message "updating HUB_DIR=${HUB_DIR}. date=$(date), uname=$(uname -a)"
     cd "${HUB_DIR}"
-    git fetch upstream # pull down the latest source from original repo - https://github.com/reichlab/covid19-forecast-hub
-    git pull upstream master  # update fork from original repo to keep up with their changes
+    git fetch upstream                            # pull down the latest source from original repo - https://github.com/reichlab/covid19-forecast-hub
+    git pull upstream master                      # update fork from original repo to keep up with their changes
 
     MONDAY_DATE=$(basename ${PDF_DIR})            # e.g., 2022-01-31
     NEW_BRANCH_NAME="baseline-${MONDAY_DATE//-/}" # remove '-'. per https://tldp.org/LDP/abs/html/string-manipulation.html
@@ -105,20 +84,40 @@ if [ $? -eq 0 ]; then
     git add -A
     git commit -m "baseline build, ${MONDAY_DATE}"
     git push --set-upstream origin ${NEW_BRANCH_NAME}
+    PUSH_RESULT=$? # todo do in one expression
+
+    if [ $PUSH_RESULT -eq 0 ]; then
+      ORIGIN_URL=$(git config --get remote.origin.url) # e.g., https://github.com/reichlabmachine/covid19-forecast-hub.git
+      ORIGIN_URL=${ORIGIN_URL::-4}                     # assumes original clone included ".git". todo one expression
+      slack_message "push OK. CVS branch=${ORIGIN_URL}/tree/${NEW_BRANCH_NAME}. date=$(date), uname=$(uname -a)"
+    else
+      slack_message "push failed. date=$(date), uname=$(uname -a)"
+    fi
 
     slack_message "deleting local branch. date=$(date), uname=$(uname -a)"
     git checkout master                              # change back to main branch
     git branch -D ${NEW_BRANCH_NAME}                 # remove baseline branch from local
 
-    # done with branch. report success and upload PDFs
+    # done with branch. upload PDFs, and optionally zipped CSV file (if push failed)
     ORIGIN_URL=$(git config --get remote.origin.url) # e.g., https://github.com/reichlabmachine/covid19-forecast-hub.git
-    ORIGIN_URL=${ORIGIN_URL::-4}                     # todo do in one expression :-)
-
-    slack_message "uploading log and PDFs. date=$(date). CVS branch=${ORIGIN_URL}/tree/${NEW_BRANCH_NAME}. uname=$(uname -a)"
+    ORIGIN_URL=${ORIGIN_URL::-4}                     # todo one expression
+    slack_message "uploading log, PDFs, [CSVs]. date=$(date), uname=$(uname -a)"
     slack_upload ${OUT_FILE}
+
     for PDF_FILE in ${PDF_DIR}/*.pdf; do
       slack_upload ${PDF_FILE}
     done
+
+    if [ $PUSH_RESULT -ne 0 ]; then
+      for CSV_FILE in ${CSV_DIR}/*.csv; do
+        # MONDAY_DATE=$(basename ${PDF_DIR}) # e.g., 2022-01-31
+        # ZIP_CSV_FILE=/tmp/${CSV_FILE}.zip
+        ZIP_CSV_FILE=/tmp/$(basename ${CSV_FILE}).zip
+        zip ${ZIP_CSV_FILE} ${CSV_FILE}
+        slack_upload ${ZIP_CSV_FILE}
+      done
+    fi
+
   fi
 else
   # make had errors. upload just the log file
