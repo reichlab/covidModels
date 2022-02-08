@@ -84,7 +84,7 @@ if [ $? -eq 0 ]; then
     git add -A
     git commit -m "baseline build, ${MONDAY_DATE}"
     git push --set-upstream origin ${NEW_BRANCH_NAME}
-    PUSH_RESULT=$? # todo do in one expression
+    PUSH_RESULT=$?
 
     if [ $PUSH_RESULT -eq 0 ]; then
       ORIGIN_URL=$(git config --get remote.origin.url) # e.g., https://github.com/reichlabmachine/covid19-forecast-hub.git
