@@ -33,11 +33,10 @@ git merge upstream/master # update fork from original repo to keep up with their
 cd ${HUB_WEB_DIR}
 git pull
 
-slack_message "NOT running render_reports.R (using html files from previous run). date=$(date), uname=$(uname -a)"
+slack_message "running render_reports.R (using html files from previous run). date=$(date), uname=$(uname -a)"
 OUT_FILE=/tmp/run-weekly-reports-out.txt
 cd ${HUB_DIR}/code/reports/
-# Rscript --vanilla render_reports.R >${OUT_FILE} 2>&1
-echo "not running script" >${OUT_FILE}
+Rscript --vanilla render_reports.R >${OUT_FILE} 2>&1
 
 if [ $? -eq 0 ]; then
   # script had no errors. copy the 54 reports into the covid19-forecast-hub-web/reports . commit the reports and push.
@@ -82,6 +81,6 @@ fi
 # done!
 #
 
-slack_message "done. NOT shutting down. date=$(date), uname=$(uname -a)"
+slack_message "done. shutting down. date=$(date), uname=$(uname -a)"
 slack_upload ${OUT_FILE}
-# sudo shutdown now -h
+sudo shutdown now -h
