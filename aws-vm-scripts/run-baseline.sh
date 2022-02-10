@@ -31,6 +31,10 @@ git pull
 cd /data/covidData/
 git pull
 
+# update covidData library
+cd code/data-processing/
+make all
+
 #
 # build the model, first cleaning up outputs from previous runs
 # (@evan said: in general this will not be necessary. each week it creates a new set of plots and a submission file with
