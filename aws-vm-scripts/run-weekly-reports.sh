@@ -19,17 +19,19 @@ source $(dirname "$0")/slack.sh
 
 slack_message "$0 entered. date=$(date), uname=$(uname -a)"
 
-HUB_DIR="/data/covid19-forecast-hub"
-HUB_WEB_DIR="/data/covid19-forecast-hub-web"
+HUB_DIR="/data/covid19-forecast-hub"         # a fork
+HUB_WEB_DIR="/data/covid19-forecast-hub-web" # not a fork
 slack_message "updating HUB_DIR=${HUB_DIR} and HUB_WEB_DIR=${HUB_WEB_DIR}. date=$(date), uname=$(uname -a)"
 
+# sync fork with upstream. note that we do not pull changes from the fork because we frankly don't need them; all we're
+# concerned with is adding new files to a new branch and pushing them.
 cd "${HUB_DIR}"
-git fetch upstream       # pull down the latest source from original repo - https://github.com/reichlab/covid19-forecast-hub
-git pull upstream master # update fork from original repo to keep up with their changes
+git fetch upstream        # pull down the latest source from original repo
+git checkout master       # ensure I'm on local master
+git merge upstream/master # update fork from original repo to keep up with their changes
 
 cd ${HUB_WEB_DIR}
-git fetch upstream
-git pull upstream master
+git pull
 
 slack_message "NOT running render_reports.R (using html files from previous run). date=$(date), uname=$(uname -a)"
 OUT_FILE=/tmp/run-weekly-reports-out.txt
@@ -45,9 +47,9 @@ if [ $? -eq 0 ]; then
   cd ${HUB_WEB_DIR}
   git checkout -b ${NEW_BRANCH_NAME}
   cp -f ${HUB_DIR}/code/reports/*.html ${HUB_WEB_DIR}/reports
-  git add -Aa
+  git add reports/\*
   git commit -m "Latest reports"
-  git push --set-upstream origin ${NEW_BRANCH_NAME}
+  git push origin ${NEW_BRANCH_NAME} # unsure whether `--set-upstream` needed. seems OK without it
   PUSH_RESULT=$?
 
   if [ $PUSH_RESULT -eq 0 ]; then
@@ -67,7 +69,6 @@ if [ $? -eq 0 ]; then
   slack_message "deleting local branch. date=$(date), uname=$(uname -a)"
   git checkout master              # change back to main branch
   git branch -D ${NEW_BRANCH_NAME} # remove weekly reports branch from local
-
   slack_message "delete done. date=$(date). repo=${ORIGIN_URL}. uname=$(uname -a)"
 
   # todo xx update the web site: run deploy GitHub Action - https://github.com/reichlab/covid19-forecast-hub-web#build-the-site-and-deploy-on-github-pages

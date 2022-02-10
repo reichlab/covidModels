@@ -70,11 +70,13 @@ if [ $? -eq 0 ]; then
     # create and push branch with new CSV file. we could first sync w/upstream and then push to the fork, but this is
     # unnecessary for this script because `make all` gets the data it needs from the net and not the ${HUB_DIR}. note
     # that we may later decide to go ahead and sync in case other scripts that use this volume (at /data) need
-    # up-to-date data, which is why we've kept the commands but commented them out
+    # up-to-date data, which is why we've kept the commands but commented them out. also note that we do not pull
+    # changes from the fork because we frankly don't need them; all we're concerned with is adding new files to a new
+    # branch and pushing them.
     HUB_DIR="/data/covid19-forecast-hub"
     slack_message "updating HUB_DIR=${HUB_DIR}. date=$(date), uname=$(uname -a)"
     cd "${HUB_DIR}"
-    # git fetch upstream                         # pull down the latest source from original repo - https://github.com/reichlab/covid19-forecast-hub
+    # git fetch upstream                         # pull down the latest source from original repo
     # git checkout master                        # ensure I'm on local master
     # git merge upstream/master                  # update fork from original repo to keep up with their changes
     # git push origin master                     # sync with fork
