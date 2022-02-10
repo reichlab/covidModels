@@ -74,7 +74,7 @@ if [ $? -eq 0 ]; then
     # changes from the fork because we frankly don't need them; all we're concerned with is adding new files to a new
     # branch and pushing them.
     HUB_DIR="/data/covid19-forecast-hub"
-    slack_message "updating HUB_DIR=${HUB_DIR}. date=$(date), uname=$(uname -a)"
+    slack_message "NOT updating HUB_DIR=${HUB_DIR}. date=$(date), uname=$(uname -a)"
     cd "${HUB_DIR}"
     # git fetch upstream                         # pull down the latest source from original repo
     # git checkout master                        # ensure I'm on local master
@@ -84,10 +84,10 @@ if [ $? -eq 0 ]; then
     MONDAY_DATE=$(basename ${PDF_DIR})            # e.g., 2022-01-31
     NEW_BRANCH_NAME="baseline-${MONDAY_DATE//-/}" # remove '-'. per https://tldp.org/LDP/abs/html/string-manipulation.html
     CSV_DIR="${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline"
-
     slack_message "creating branch and pushing. MONDAY_DATE=${MONDAY_DATE}, NEW_BRANCH_NAME=${NEW_BRANCH_NAME}, CSV_DIR=${CSV_DIR}. date=$(date), uname=$(uname -a)"
+
     git checkout -b ${NEW_BRANCH_NAME}
-    cp ${CSV_DIR}/*.csv "${HUB_DIR}/data-processed/COVIDhub-baseline"
+    cp ${CSV_DIR}/*.csv ${HUB_DIR}/data-processed/COVIDhub-baseline
     git add data-processed/COVIDhub-baseline/\*
     git commit -m "baseline build, ${MONDAY_DATE}"
     git push origin ${NEW_BRANCH_NAME} # unsure whether `--set-upstream` needed. seems OK without it
@@ -102,8 +102,8 @@ if [ $? -eq 0 ]; then
     fi
 
     slack_message "deleting local branch. date=$(date), uname=$(uname -a)"
-    git checkout master                              # change back to main branch
-    git branch -D ${NEW_BRANCH_NAME}                 # remove baseline branch from local
+    git checkout master              # change back to main branch
+    git branch -D ${NEW_BRANCH_NAME} # remove baseline branch from local
 
     # done with branch. upload PDFs, and optionally zipped CSV file (if push failed)
     slack_message "uploading log, PDFs, [CSVs]. date=$(date), uname=$(uname -a)"
