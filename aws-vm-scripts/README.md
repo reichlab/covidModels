@@ -1,6 +1,17 @@
 This directory contains [AWS](https://aws.amazon.com/) -based scripts that automate the running of weekly utility scripts in this repo.
 
 
+# Files
+- README.md: this file
+- baseline-setup.md: sketch of the commands that configured the instance - libraries, etc.
+- lambda.py: the Lambda function
+- run-baseline.sh: runs the Reichlab COVID-19 model
+- run-startup-script.sh: the instance's init script that runs on startup. dispatches based on the "startup_script" tag (see below)
+- run-weekly-reports.sh: runs the Reichlab COVID-19 reports generator. dispatches based on ""
+- sandbox.sh: a debugging script that does some git operations and posts Slack messages and uploads a file to slack
+- slack.sh: defines some simple functions for posting slack messages and uploading files
+
+
 # GitHub configuration: `reichlabmachine` account
 To support automation access to the relevant GitHub repos, we created a GitHub "machine user" account named [reichlabmachine](https://github.com/reichlabmachine/) and owned by Nick. That account's GitHub personal access token (PAT) is what's used to do writes (e.g., `push`es) to the repos. It was stored via `git config credential.helper store`.
 
@@ -49,15 +60,6 @@ su -c "/data/covidModels/aws-vm-scripts/run-startup-script.sh" ec2-user >> /tmp/
 --//--
 ```
 
-# Manually starting a run
-You can start any particular script manually via the [AWS console](https://console.aws.amazon.com/console/home) by following these steps:
-- Select the instance `i-0db5237193478dd8d (baseline model)`.
-- Select "Instance state > Instance settings > Manage tags".
-- Set the "startup_script"'s tag's value as desired (see above), e.g., "sandbox.sh" (no quotes).
-- Start the instance.
-- Note that the next run of the Lambda function will change that tag's value.
-
-
 # AWS EC2 instance
 I’ve configured this EC2 instance: [i-0db5237193478dd8d](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#InstanceDetails:instanceId=i-0db5237193478dd8d), which is named "baseline model". It is an [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2/) machine that has been configured to have all the required settings and OS and R libraries. It auto-mounts (via `fstab`) a 100 GB [gp2 EBS volume](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html) that has clones of the required repos, and persists across reboots.
 
@@ -68,31 +70,12 @@ The instance's account is the default `ec2-user`, which is the owner of the EBS 
 The Lambda function [start-baseline-instance](https://console.aws.amazon.com/lambda/home?region=us-east-1#/functions/start-baseline-instance?tab=code) (written in Python) starts the above EC2 instance, looking for the instance whose name is 'baseline model' to identify it. The function's execution role is [EC2RoleForBaselineScriptLambda](https://console.aws.amazon.com/iam/home#/roles/EC2RoleForBaselineScriptLambda?section=permissions), which has the [EC2DescribeStartStopWithLogs](https://console.aws.amazon.com/iam/home#/policies/arn:aws:iam::312560106906:policy/EC2DescribeStartStopWithLogs$jsonEditor) policy attached to it. That policy allows describing, starting, and stopping instances, and writing to logs.
 
 
-## Lambda function code
-The actual Python code is straightforward:
-
-```python
-import boto3
-
-
-def lambda_handler(event, context):
-    print(f"entered. event={event}, context={context}")
-    ec2_resource = boto3.resource('ec2', 'us-east-1')
-    filters = [{'Name': 'tag:Name', 'Values': ['baseline model']}]
-    instances = ec2_resource.instances.filter(Filters=filters)
-    print(f"starting any instances")
-    for instance in instances:
-        print(f"starting: {instance}. tags={instance.tags}")  # [{'Key': 'Name', 'Value': 'baseline model'}]
-        instance.start()
-    print(f"done")
-```
-
-
 # AWS EventBridge events
 We have set up Amazon EventBridge rules to run the Lambda function on a schedule, specifying which script to start up as described above.
 
 Rules:
-- [MondayMorning9aEST](https://console.aws.amazon.com/events/home?region=us-east-1#/eventbus/default/rules/MondayMorning9aEST): triggers the Lambda function that starts the above EC2 instance, using the cron event schedule `cron(0 9 ? * MON *)` (every Monday at 9AM EST).
+- [MondayMorning9aEST](https://console.aws.amazon.com/events/home?region=us-east-1#/eventbus/default/rules/MondayMorning9aEST): triggers the Lambda function that starts the above EC2 instance, using the cron event schedule `cron(0 9 ? * MON *)` (every Monday at 9AM EST). Passes "run-baseline.sh" for "startup_script".
+- [TuesdayMorning930aEST](https://us-east-1.console.aws.amazon.com/events/home?region=us-east-1#/eventbus/default/rules/TuesdayMorning930aEST): Similar to "", but runs every Tuesday at 9:30AM EST. Passes "run-weekly-reports.sh" for "startup_script". 
 
 
 ## Slack app
@@ -108,3 +91,13 @@ CHANNEL_ID=C01DTCAL49X
 The token is the _Bot User OAuth Token_ for the app, and the channel id is that of [#weekly-ensemble](https://app.slack.com/client/T089JRGMA/C01DTCAL49X). The app has been configured to have the `chat:write` and `files:write` _Bot Token Scopes_, and has been added to that channel.
 
 For simplicity, we use simple `curl` calls ([docs](https://api.slack.com/tutorials/tracks/posting-messages-with-curl)) to send messages and upload files - see the functions `slack_message()` and `slack_upload()` in `run-baseline.sh`.
+
+
+# Manually starting a run
+You can start any particular script manually via the [AWS console](https://console.aws.amazon.com/console/home) by following these steps:
+- Select the instance `i-0db5237193478dd8d (baseline model)`.
+- Select "Instance state > Instance settings > Manage tags".
+- Set the "startup_script"'s tag's value as desired (see above), e.g., "sandbox.sh" (no quotes).
+- Start the instance.
+- Note that the next run of the Lambda function will change that tag's value.
+
