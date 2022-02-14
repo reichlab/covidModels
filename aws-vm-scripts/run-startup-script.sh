@@ -12,7 +12,6 @@ echo "$0 entered. date=$(date), uname=$(uname -a)"
 
 TOKEN=$(curl --silent --show-error -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 TAGS=$(curl --silent --show-error -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance)
-echo $TAGS
 
 # set STARTUP_SCRIPT_VALUE
 COVID_MODELS_DIR="/data/covidModels"
