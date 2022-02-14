@@ -39,4 +39,4 @@ else
 fi
 
 # done
-echo "$0 done. date=$(date), uname=$(uname -a)"
+echo -e "$0 done. date=$(date), uname=$(uname -a)\n\n"
