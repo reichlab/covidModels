@@ -30,8 +30,7 @@ if [ -n ${STARTUP_SCRIPT_VALUE} ]; then
   STARTUP_SCRIPT="${COVID_MODELS_DIR}/aws-vm-scripts/${STARTUP_SCRIPT_VALUE}"
   if [ -f ${STARTUP_SCRIPT} ]; then
     echo "startup script found; starting. STARTUP_SCRIPT=${STARTUP_SCRIPT}. date=$(date), uname=$(uname -a)"
-    source $STARTUP_SCRIPT
-    echo "startup script done. date=$(date), uname=$(uname -a)"
+    $STARTUP_SCRIPT &
   else
     echo "startup script not found. STARTUP_SCRIPT=${STARTUP_SCRIPT}. date=$(date), uname=$(uname -a)"
   fi
