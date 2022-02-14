@@ -10,15 +10,15 @@ echo "$0 entered. date=$(date), uname=$(uname -a)"
 
 # look for the tag, get its value if present, get the corresponding script name, and run it if found
 
-TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
-TAGS=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance)
+TOKEN=$(curl --silent --show-error -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+TAGS=$(curl --silent --show-error -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance)
 echo $TAGS
 
 # set STARTUP_SCRIPT_VALUE
 COVID_MODELS_DIR="/data/covidModels"
 STARTUP_SCRIPT_TAG_NAME='startup_script'
 for TAG_NAME in $TAGS; do
-  TAG_VALUE=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/${TAG_NAME})
+  TAG_VALUE=$(curl --silent --show-error -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/tags/instance/${TAG_NAME})
   echo "TAG_NAME=${TAG_NAME}, TAG_VALUE=${TAG_VALUE}"
   if [ $TAG_NAME = ${STARTUP_SCRIPT_TAG_NAME} ]; then
     STARTUP_SCRIPT_VALUE=${TAG_VALUE}
