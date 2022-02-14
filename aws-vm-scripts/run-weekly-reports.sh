@@ -56,7 +56,7 @@ if [ $? -eq 0 ]; then
     slack_message "push OK. creating PR. date=$(date), uname=$(uname -a)"
     PR_URL=$(gh pr create --fill) #  e.g., https://github.com/reichlabmachine/sandbox/pull/1
     PR_RESULT=$?
-    if [ PR_RESULT -eq 0 ]; then
+    if [ $PR_RESULT -eq 0 ]; then
       slack_message "PR creation OK. PR_URL=${PR_URL}. date=$(date), uname=$(uname -a)"
     else
       slack_message "PR creation failed. date=$(date), uname=$(uname -a)"
