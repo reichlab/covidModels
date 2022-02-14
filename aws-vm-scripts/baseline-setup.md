@@ -1,4 +1,4 @@
-Here are the commands I ended up with that configured the instance for running the baseline model. I did not run them exactly in this order because it took a lot of trial and error to get a successful setup. But I'm putting them here for reference, and for a possible starting point for future VM tasks.
+Here are the commands I ended up with that configured the instance for running the weekly scripts. I did not run them exactly in this order because it took a lot of trial and error to get a successful setup. Still, I'm putting them here for reference, and for a possible starting point for future VM tasks.
 
 
 # User
@@ -47,8 +47,9 @@ License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 Follow the instructions [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html) - lsblk, fstab, etc. NB: I decided to `sudo chown ec2-user -R /data`
 
 
-# Update OS
+# update OS
 `sudo yum update -y`
+
 
 # set up timezone
 `sudo timedatectl set-timezone UTC`
@@ -63,16 +64,23 @@ Python 3.7.10
 
 # utilities and required OS libs
 ```bash
+sudo amazon-linux-extras install epel -y
 sudo yum install -y git
 sudo yum install -y emacs
 sudo yum install -y htop
 sudo yum install -y openssl-devel
 sudo yum install -y libxml2-devel
 sudo yum install -y libcurl-devel
-sudo amazon-linux-extras install epel -y
-sudo yum -y install geos geos-devel
+sudo yum install -y geos geos-devel
 sudo yum install -y udunits2-devel
+sudo yum install -y pandoc
 ```
+
+
+# configure git and GitHub users
+git config --global user.name "EC2 Default User"
+git config --global user.email nick@umass.edu
+gh auth login  # interactive: enter reichlabmachine personal access token
 
 
 # Update gdal from 1.11.4
@@ -140,7 +148,7 @@ You should then have this results, where #1 is the `ec2-user` home R library loc
 Here then are the packages to install from within the `R` interpreter as `ec2-user`. Note that I may have missed some here :-/
 
 ```R
-install.packages(c('devtools', 'tidyverse', 'covidcast'), repos='http://cran.rstudio.com/')
+install.packages(c('devtools', 'tidyverse', 'covidcast', 'crosstalk', 'doParallel', 'DT', 'foreach', 'htmltools', 'lubridate', 'parallel', 'plotly', 'scico', 'zoo', 'shiny'), repos='http://cran.rstudio.com/')
 ```
 
 
@@ -169,4 +177,9 @@ cd /data/covid19-forecast-hub
 git remote add upstream https://github.com/reichlab/covid19-forecast-hub.git
 git fetch upstream
 git pull upstream master
+git config credential.helper store
+
+cd /data
+git clone https://github.com/reichlab/covid19-forecast-hub-web.git
+git config credential.helper store
 ```
