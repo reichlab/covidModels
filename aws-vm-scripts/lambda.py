@@ -32,8 +32,8 @@ def lambda_handler(event, context):
     instances = ec2_resource.instances.filter(Filters=filters)
     print(f"starting found instance(s)")
     for instance in instances:
-        print(f"setting startup_script tag. key={STARTUP_SCRIPT_KEY!r}, value={startup_script!r}")
+        print(f"instance={instance}. setting startup_script tag. key={STARTUP_SCRIPT_KEY!r}, value={startup_script!r}")
         instance.create_tags(Tags=[{'Key': STARTUP_SCRIPT_KEY, 'Value': startup_script}])
-        print(f"starting: {instance}. tags={instance.tags}")  # [{'Key': 'Name', 'Value': 'covid weekly'}]
+        print(f"starting: {instance}. tags={instance.tags}")  # tags=[{'Key': 'Name', 'Value': 'covid weekly'}, {'Key': 'startup_script', 'Value': 'run-weekly-reports.shxx'}]
         instance.start()
     print(f"done")
