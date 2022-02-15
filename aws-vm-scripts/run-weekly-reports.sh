@@ -33,7 +33,7 @@ git merge upstream/master # update fork from original repo to keep up with their
 cd ${HUB_WEB_DIR}
 git pull
 
-slack_message "running render_reports.R (using html files from previous run). date=$(date), uname=$(uname -a)"
+slack_message "running render_reports.R. date=$(date), uname=$(uname -a)"
 OUT_FILE=/tmp/run-weekly-reports-out.txt
 cd ${HUB_DIR}/code/reports/
 Rscript --vanilla render_reports.R >${OUT_FILE} 2>&1
