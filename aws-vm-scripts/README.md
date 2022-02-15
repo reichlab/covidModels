@@ -12,6 +12,13 @@ This directory contains [AWS](https://aws.amazon.com/) -based scripts that autom
 - slack.sh: defines some simple functions for posting slack messages and uploading files
 
 
+# Manually starting a run
+You can start any particular script manually via the [AWS console](https://console.aws.amazon.com/console/home) by following these steps:
+- Go to the [runCovidWeekly](https://console.aws.amazon.com/lambda/home?region=us-east-1#/functions/runCovidWeekly?tab=code) AWS Lambda page.
+- Using the "Test" dropdown, select the run you'd like to do and then click "Test".
+- Note that the "noop" test will *not* cause the instance to shut down once the test finishes, so you'll have to manually stop it yourself. All the other tests will cause a shutdown.
+
+
 # GitHub configuration: `reichlabmachine` account
 To support automation access to the relevant GitHub repos, we created a GitHub "machine user" account named [reichlabmachine](https://github.com/reichlabmachine/) and owned by Nick. That account's GitHub personal access token (PAT) is what's used to do writes (e.g., `push`es) to the repos. It was stored via `git config credential.helper store`.
 
@@ -91,13 +98,4 @@ CHANNEL_ID=C01DTCAL49X
 The token is the _Bot User OAuth Token_ for the app, and the channel id is that of [#weekly-ensemble](https://app.slack.com/client/T089JRGMA/C01DTCAL49X). The app has been configured to have the `chat:write` and `files:write` _Bot Token Scopes_, and has been added to that channel.
 
 For simplicity, we use simple `curl` calls ([docs](https://api.slack.com/tutorials/tracks/posting-messages-with-curl)) to send messages and upload files - see the functions `slack_message()` and `slack_upload()` in `run-baseline.sh`.
-
-
-# Manually starting a run
-You can start any particular script manually via the [AWS console](https://console.aws.amazon.com/console/home) by following these steps:
-- Select the instance `i-0db5237193478dd8d (baseline model)`.
-- Select "Instance state > Instance settings > Manage tags".
-- Set the "startup_script"'s tag's value as desired (see above), e.g., "sandbox.sh" (no quotes).
-- Start the instance.
-- Note that the next run of the Lambda function will change that tag's value.
 
