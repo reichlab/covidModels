@@ -6,7 +6,7 @@
 # is the exact name of the script in that directory to run - no path, just script name. Does nothing if the script
 # is not found, implementing a "noop" for interactive work.
 
-echo "$0 entered. date=$(date), uname=$(uname -a)"
+echo "$0 entered. date=$(date), uname=$(uname -n)"
 
 # look for the tag, get its value if present, get the corresponding script name, and run it if found
 
@@ -29,14 +29,14 @@ done
 if [ -n ${STARTUP_SCRIPT_VALUE} ]; then
   STARTUP_SCRIPT="${COVID_MODELS_DIR}/aws-vm-scripts/${STARTUP_SCRIPT_VALUE}"
   if [ -f ${STARTUP_SCRIPT} ]; then
-    echo "startup script found; starting. STARTUP_SCRIPT=${STARTUP_SCRIPT}. date=$(date), uname=$(uname -a)"
+    echo "startup script found; starting. STARTUP_SCRIPT=${STARTUP_SCRIPT}. date=$(date), uname=$(uname -n)"
     $STARTUP_SCRIPT &
   else
-    echo "startup script not found. STARTUP_SCRIPT=${STARTUP_SCRIPT}. date=$(date), uname=$(uname -a)"
+    echo "startup script not found. STARTUP_SCRIPT=${STARTUP_SCRIPT}. date=$(date), uname=$(uname -n)"
   fi
 else
-  echo "no STARTUP_SCRIPT_TAG_NAME found. date=$(date), uname=$(uname -a)"
+  echo "no STARTUP_SCRIPT_TAG_NAME found. date=$(date), uname=$(uname -n)"
 fi
 
 # done
-echo -e "$0 done. date=$(date), uname=$(uname -a)\n\n"
+echo -e "$0 done. date=$(date), uname=$(uname -n)\n\n"

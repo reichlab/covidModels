@@ -15,14 +15,14 @@ set +o allexport
 source $(dirname "$0")/slack.sh
 
 # start
-slack_message "$0 entered, editing file. date=$(date), uname=$(uname -a)"
+slack_message "$0 entered, editing file. date=$(date), uname=$(uname -n)"
 cd /data/sandbox/
 echo "$(date)" >>README.md
 git add .
 git commit -m "update"
 
-slack_message "pushing. date=$(date), uname=$(uname -a)"
+slack_message "pushing. date=$(date), uname=$(uname -n)"
 git push # where the trouble will be
 
 slack_upload README.md
-slack_message "done. date=$(date), uname=$(uname -a)"
+slack_message "done. date=$(date), uname=$(uname -n)"
