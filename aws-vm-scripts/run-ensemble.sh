@@ -97,9 +97,6 @@ if [ $? -ne 0 ]; then
   do_shutdown
 fi
 
-# todo xx
-exit 0
-
 # main_pr
 slack_message "creating main_pr. date=$(date), uname=$(uname -n)"
 (git -C $(FHUB) checkout main || git -C $(FHUB) checkout -b main) &&
