@@ -63,7 +63,7 @@ Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment; filename="userdata.txt"
 
 #!/bin/bash
-su -c "/data/covidModels/aws-vm-scripts/run-startup-script.sh" ec2-user >> /tmp/startup-out.txt 2>&1
+su -c "/data/covidModels/aws-vm-scripts/run-startup-script.sh" ec2-user >> /tmp/user-data-out.txt 2>&1
 --//--
 ```
 
