@@ -32,8 +32,8 @@ cd /data/covidData/
 git pull
 
 # update covidData library
-cd code/data-processing/
-make all
+slack_message "updating covidData library. date=$(date), uname=$(uname -n)"
+make -C /data/covidData/code/data-processing all
 
 #
 # build the model, first cleaning up outputs from previous runs

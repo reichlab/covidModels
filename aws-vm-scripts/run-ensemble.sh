@@ -40,20 +40,19 @@ git merge upstream/master # update fork from original repo to keep up with their
 
 # update covidData library
 slack_message "updating covidData library. date=$(date), uname=$(uname -n)"
-cd /data/covidData/code/data-processing
-make all
+make -C /data/covidData/code/data-processing all
 
 #
 # build the model (this is the output from `make all -n`)
 #
 
-TODAY_DATE=$(shell date +'%Y-%m-%d')
+TODAY_DATE=$(date +'%Y-%m-%d') # e.g., 2022-02-17
 OUT_FILE=/tmp/run-ensemble-out.txt
 echo -n >${OUT_FILE} # truncate
 
 slack_message "tagging inputs. date=$(date), uname=$(uname -n)"
-git -C $(HUB_DIR) tag -a $(TODAY_DATE)-COVIDhub-ensemble -m "$(TODAY_DATE)-COVIDhub-ensemble build inputs"
-git -C $(HUB_DIR) push origin $(TODAY_DATE)-COVIDhub-ensemble
+git -C $(HUB_DIR) tag -a ${TODAY_DATE}-COVIDhub-ensemble -m "${TODAY_DATE}-COVIDhub-ensemble build inputs"
+git -C $(HUB_DIR) push origin ${TODAY_DATE}-COVIDhub-ensemble
 
 slack_message "running Rscript 1/6: build_trained_ensembles.R. date=$(date), uname=$(uname -n)"
 Rscript build_trained_ensembles.R >>${OUT_FILE} 2>&1
@@ -99,14 +98,14 @@ fi
 
 # main_pr
 slack_message "creating main_pr. date=$(date), uname=$(uname -n)"
-(git -C $(FHUB) checkout main || git -C $(FHUB) checkout -b main) &&
-  cp forecasts/ensemble-metadata/$(TODAY_DATE)* $(FHUB)/ensemble-metadata/ &&
-  cp forecasts/data-processed/COVIDhub-ensemble/$(TODAY_DATE)-COVIDhub-ensemble.csv $(FHUB)/data-processed/COVIDhub-ensemble/ &&
-  cd $(FHUB) &&
+(git -C $(HUB_DIR) checkout main || git -C $(HUB_DIR) checkout -b main) &&
+  cp forecasts/ensemble-metadata/${TODAY_DATE}* $(HUB_DIR)/ensemble-metadata/ &&
+  cp forecasts/data-processed/COVIDhub-ensemble/${TODAY_DATE}-COVIDhub-ensemble.csv $(HUB_DIR)/data-processed/COVIDhub-ensemble/ &&
+  cd $(HUB_DIR) &&
   git add -A &&
-  git commit -m "$(TODAY_DATE) ensemble" &&
+  git commit -m "${TODAY_DATE} ensemble" &&
   git push origin &&
-  PR_URL=$(gh pr create --title "$(TODAY_DATE) ensemble" --body "Main Ensemble, COVID19 Forecast Hub")
+  PR_URL=$(gh pr create --title "${TODAY_DATE} ensemble" --body "Main Ensemble, COVID19 Forecast Hub")
 
 if [ $? -eq 0 ]; then
   slack_message "main_pr OK. PR_URL=${PR_URL}. date=$(date), uname=$(uname -a)"
@@ -117,15 +116,15 @@ fi
 
 # trained_pr
 slack_message "creating trained_pr. date=$(date), uname=$(uname -n)"
-(git -C $(FHUB) checkout trained || git -C $(FHUB) checkout -b trained) &&
-  cp forecasts/trained_ensemble-metadata/$(TODAY_DATE)* $(FHUB)/trained_ensemble-metadata/ &&
-  cp forecasts/trained_ensemble-metadata/thetas.csv $(FHUB)/trained_ensemble-metadata/thetas.csv &&
-  cp forecasts/data-processed/COVIDhub-trained_ensemble/$(TODAY_DATE)-COVIDhub-trained_ensemble.csv $(FHUB)/data-processed/COVIDhub-trained_ensemble/ &&
-  cd $(FHUB) &&
+(git -C $(HUB_DIR) checkout trained || git -C $(HUB_DIR) checkout -b trained) &&
+  cp forecasts/trained_ensemble-metadata/${TODAY_DATE}* $(HUB_DIR)/trained_ensemble-metadata/ &&
+  cp forecasts/trained_ensemble-metadata/thetas.csv $(HUB_DIR)/trained_ensemble-metadata/thetas.csv &&
+  cp forecasts/data-processed/COVIDhub-trained_ensemble/${TODAY_DATE}-COVIDhub-trained_ensemble.csv $(HUB_DIR)/data-processed/COVIDhub-trained_ensemble/ &&
+  cd $(HUB_DIR) &&
   git add -A &&
-  git commit -m "$(TODAY_DATE) trained ensemble" &&
+  git commit -m "${TODAY_DATE} trained ensemble" &&
   git push origin &&
-  PR_URL=$(gh pr create --title "$(TODAY_DATE) trained ensemble" --body "Trained Ensemble, COVID19 Forecast Hub")
+  PR_URL=$(gh pr create --title "${TODAY_DATE} trained ensemble" --body "Trained Ensemble, COVID19 Forecast Hub")
 
 if [ $? -eq 0 ]; then
   slack_message "main_pr OK. PR_URL=${PR_URL}. date=$(date), uname=$(uname -a)"
@@ -136,14 +135,14 @@ fi
 
 # 4wk_pr
 slack_message "creating 4wk_pr. date=$(date), uname=$(uname -n)"
-(git -C $(FHUB) checkout 4wk || git -C $(FHUB) checkout -b 4wk) &&
-  cp forecasts/4_week_ensemble-metadata/$(TODAY_DATE)* $(FHUB)/4_week_ensemble-metadata/ &&
-  cp forecasts/data-processed/COVIDhub-4_week_ensemble/$(TODAY_DATE)-COVIDhub-4_week_ensemble.csv $(FHUB)/data-processed/COVIDhub-4_week_ensemble/ &&
-  cd $(FHUB) &&
+(git -C $(HUB_DIR) checkout 4wk || git -C $(HUB_DIR) checkout -b 4wk) &&
+  cp forecasts/4_week_ensemble-metadata/${TODAY_DATE}* $(HUB_DIR)/4_week_ensemble-metadata/ &&
+  cp forecasts/data-processed/COVIDhub-4_week_ensemble/${TODAY_DATE}-COVIDhub-4_week_ensemble.csv $(HUB_DIR)/data-processed/COVIDhub-4_week_ensemble/ &&
+  cd $(HUB_DIR) &&
   git add -A &&
-  git commit -m "$(TODAY_DATE) 4 week ensemble" &&
+  git commit -m "${TODAY_DATE} 4 week ensemble" &&
   git push origin &&
-  PR_URL=$(gh pr create --title "$(TODAY_DATE) 4 week ensemble" --body "4 Week Ensemble, COVID19 Forecast Hub")
+  PR_URL=$(gh pr create --title "${TODAY_DATE} 4 week ensemble" --body "4 Week Ensemble, COVID19 Forecast Hub")
 
 if [ $? -eq 0 ]; then
   slack_message "main_pr OK. PR_URL=${PR_URL}. date=$(date), uname=$(uname -a)"
@@ -151,6 +150,34 @@ else
   slack_message "main_pr failed. date=$(date), uname=$(uname -a)"
   do_shutdown
 fi
+
+#
+# upload reports
+# - relative to ../covidEnsembles/code/application/weekly-ensemble/plots/
+#
+slack_message "app PRs succeeded; uploading reports. date=$(date), uname=$(uname -n)"
+
+# todo xx:
+# COVIDhub-ensemble/${TODAY_DATE}/COVIDhub-ensemble-${TODAY_DATE}-cases.pdf
+# COVIDhub-ensemble/${TODAY_DATE}/COVIDhub-ensemble-${TODAY_DATE}-deaths.pdf
+# COVIDhub-ensemble/${TODAY_DATE}/COVIDhub-ensemble-${TODAY_DATE}-hospitalizations.pdf
+
+# COVIDhub-4_week_ensemble/${TODAY_DATE}/COVIDhub-4_week_ensemble-${TODAY_DATE}-cases.pdf
+# COVIDhub-4_week_ensemble/${TODAY_DATE}/COVIDhub-4_week_ensemble-${TODAY_DATE}-deaths.pdf
+# COVIDhub-4_week_ensemble/${TODAY_DATE}/COVIDhub-4_week_ensemble-${TODAY_DATE}-hospitalizations.pdf
+
+# COVIDhub-trained_ensemble/${TODAY_DATE}/COVIDhub-trained_ensemble-${TODAY_DATE}-cases.pdf
+# COVIDhub-trained_ensemble/${TODAY_DATE}/COVIDhub-trained_ensemble-${TODAY_DATE}-deaths.pdf
+# COVIDhub-trained_ensemble/${TODAY_DATE}/COVIDhub-trained_ensemble-${TODAY_DATE}-hospitalizations.pdf
+
+# loss_plot_${TODAY_DATE}.pdf
+
+# weight_reports/fig-ensemble_weight_${TODAY_DATE}.html
+
+# ${TODAY_DATE}/forecast_comparison-${TODAY_DATE}-casess.pdf
+# ${TODAY_DATE}/forecast_comparison-${TODAY_DATE}-deaths.pdf
+# ${TODAY_DATE}/forecast_comparison-${TODAY_DATE}-hospitalizations.pdf
+xx
 
 #
 # done!
