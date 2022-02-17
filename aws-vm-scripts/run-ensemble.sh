@@ -5,7 +5,7 @@
 # - run as `ec2-user`, not root
 #
 
-# define utility function - used for normal and abnormal exits
+# define utility function - used for both normal and abnormal exits
 do_shutdown() {
   slack_message "done. shutting down. date=$(date), uname=$(uname -n)"
   sudo shutdown now -h
@@ -26,8 +26,8 @@ source $(dirname "$0")/slack.sh
 slack_message "$0 entered. date=$(date), uname=$(uname -n)"
 
 #
-# sync fork with upstream. note that we do not pull changes from the fork because we frankly don't need them; all we're
-# concerned with is adding new files to a new branch and pushing them.
+# sync covid19-forecast-hub fork with upstream. note that we do not pull changes from the fork because we frankly don't
+# need them; all we're concerned with is adding new files to a new branch and pushing them.
 #
 
 HUB_DIR="/data/covid19-forecast-hub" # a fork
@@ -38,14 +38,15 @@ git fetch upstream        # pull down the latest source from original repo
 git checkout master       # ensure I'm on local master
 git merge upstream/master # update fork from original repo to keep up with their changes
 
+# update covidEnsembles repo
+cd /data/covidEnsembles
+git pull
+
 # update covidData library
 slack_message "updating covidData library. date=$(date), uname=$(uname -n)"
 make -C /data/covidData/code/data-processing all
 
-#
-# build the model (this is the output from `make all -n`)
-#
-
+# tag build inputs
 TODAY_DATE=$(date +'%Y-%m-%d') # e.g., 2022-02-17
 OUT_FILE=/tmp/run-ensemble-out.txt
 echo -n >${OUT_FILE} # truncate
@@ -53,6 +54,12 @@ echo -n >${OUT_FILE} # truncate
 slack_message "tagging inputs. date=$(date), uname=$(uname -n)"
 git -C $(HUB_DIR) tag -a ${TODAY_DATE}-COVIDhub-ensemble -m "${TODAY_DATE}-COVIDhub-ensemble build inputs"
 git -C $(HUB_DIR) push origin ${TODAY_DATE}-COVIDhub-ensemble
+
+#
+# build the model via a series of six R scripts
+#
+
+cd /data/covidEnsembles/code/application/weekly-ensemble
 
 slack_message "running Rscript 1/6: build_trained_ensembles.R. date=$(date), uname=$(uname -n)"
 Rscript build_trained_ensembles.R >>${OUT_FILE} 2>&1
@@ -156,6 +163,8 @@ fi
 # - relative to ../covidEnsembles/code/application/weekly-ensemble/plots/
 #
 slack_message "app PRs succeeded; uploading reports. date=$(date), uname=$(uname -n)"
+
+cd /data/covidEnsembles/code/application/weekly-ensemble/plots
 
 # todo xx:
 # COVIDhub-ensemble/${TODAY_DATE}/COVIDhub-ensemble-${TODAY_DATE}-cases.pdf

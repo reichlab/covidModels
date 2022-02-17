@@ -23,8 +23,8 @@ HUB_DIR="/data/covid19-forecast-hub"         # a fork
 HUB_WEB_DIR="/data/covid19-forecast-hub-web" # not a fork
 slack_message "updating HUB_DIR=${HUB_DIR} and HUB_WEB_DIR=${HUB_WEB_DIR}. date=$(date), uname=$(uname -n)"
 
-# sync fork with upstream. note that we do not pull changes from the fork because we frankly don't need them; all we're
-# concerned with is adding new files to a new branch and pushing them.
+# sync covid19-forecast-hub fork with upstream. note that we do not pull changes from the fork because we frankly don't
+# need them; all we're concerned with is adding new files to a new branch and pushing them.
 cd "${HUB_DIR}"
 git fetch upstream        # pull down the latest source from original repo
 git checkout master       # ensure I'm on local master
