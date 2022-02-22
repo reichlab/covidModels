@@ -56,9 +56,9 @@ if [ $? -eq 0 ]; then
     cd ${HUB_WEB_DIR}
     gh workflow run blank.yml
     if [ $? -eq 0 ]; then
-      echo "deploy workflow started ok. please check the reports are up at: https://covid19forecasthub.org/reports/single_page.html and then send a message to #weekly-ensemble . date=$(date), uname=$(uname -n)"
+      slack_message "deploy workflow started ok. please check the reports are up at: https://covid19forecasthub.org/reports/single_page.html and then send a message to #weekly-ensemble . date=$(date), uname=$(uname -n)"
     else
-      echo "deploy workflow failed. date=$(date), uname=$(uname -n)"
+      slack_message "deploy workflow failed. date=$(date), uname=$(uname -n)"
     fi
   else
     slack_message "push failed. date=$(date), uname=$(uname -n)"
