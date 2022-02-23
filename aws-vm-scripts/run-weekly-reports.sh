@@ -34,7 +34,7 @@ cd ${HUB_WEB_DIR}
 git pull
 
 slack_message "deleting any old files and running render_reports.R. date=$(date), uname=$(uname -n)"
-rm ${HUB_DIR}/code/reports/*.html
+rm -f ${HUB_DIR}/code/reports/*.html
 
 OUT_FILE=/tmp/run-weekly-reports-out.txt
 cd ${HUB_DIR}/code/reports/

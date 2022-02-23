@@ -46,7 +46,7 @@ OUT_FILE=/tmp/run-baseline-out.txt
 
 slack_message "deleting any old files and running make. date=$(date), uname=$(uname -n)"
 find ${COVID_MODELS_DIR}/weekly-submission/COVIDhub-baseline-plots -maxdepth 1 -mindepth 1 -type d -exec rm -rf '{}' \;
-rm ${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline/*.csv
+rm -f ${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline/*.csv
 make -C "${COVID_MODELS_DIR}/weekly-submission" all >${OUT_FILE} 2>&1
 
 #

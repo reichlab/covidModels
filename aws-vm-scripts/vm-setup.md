@@ -56,31 +56,47 @@ Follow the instructions [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGui
 
 
 # Install python3
-We decided the pre-installed version is ok, so no install is necessary:
+We decided the pre-installed version (3.7.10) is ok, so no install is necessary. However, we did do need to install two libraries.
 
 `python3 --version`
 Python 3.7.10
 
+```python
+pip3 install pandas
+pip3 install requests
+```
+
 
 # utilities and required OS libs
 ```bash
-sudo amazon-linux-extras install epel -y
+sudo yum update -y
 sudo yum install -y git
 sudo yum install -y emacs
 sudo yum install -y htop
+sudo amazon-linux-extras install epel -y
 sudo yum install -y openssl-devel
 sudo yum install -y libxml2-devel
 sudo yum install -y libcurl-devel
-sudo yum install -y geos geos-devel
-sudo yum install -y udunits2-devel
 sudo yum install -y pandoc
+sudo yum install -y nlopt-devel
+sudo yum install -y udunits2-devel
+sudo yum install -y geos geos-devel
+sudo amazon-linux-extras install R4 -y
 ```
 
 
 # configure git and GitHub users
 git config --global user.name "EC2 Default User"
 git config --global user.email nick@umass.edu
-gh auth login  # interactive: enter reichlabmachine personal access token
+
+
+# install gh cli
+```bash
+cd
+wget https://github.com/cli/cli/releases/download/v2.5.1/gh_2.5.1_linux_386.rpm
+sudo yum localinstall -y gh_2.5.1_linux_386.rpm
+gh auth login  # interactive: enter `reichlabmachine` personal access token
+```
 
 
 # Update gdal from 1.11.4
@@ -112,6 +128,30 @@ which gdalinfo ; gdalinfo --version
 sudo cp /usr/local/lib/libproj.so.15* /usr/lib64/
 sudo cp /usr/local/lib/libgdal.so.28* /usr/lib64/
 ```
+
+
+# install CMake
+```bash
+cd
+wget https://github.com/Kitware/CMake/releases/download/v3.22.2/cmake-3.22.2.tar.gz
+tar xzvf cmake-3.22.2.tar.gz
+cd cmake-3.22.2
+./bootstrap && make && sudo make install
+```
+
+
+# install nlopt
+```bash
+cd
+git clone https://github.com/stevengj/nlopt.git
+cd nlopt
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+```
+
 
 # Install R4
 `sudo amazon-linux-extras install R4 -y`
@@ -148,7 +188,7 @@ You should then have this results, where #1 is the `ec2-user` home R library loc
 Here then are the packages to install from within the `R` interpreter as `ec2-user`. Note that I may have missed some here :-/
 
 ```R
-install.packages(c('devtools', 'tidyverse', 'covidcast', 'crosstalk', 'doParallel', 'DT', 'foreach', 'htmltools', 'lubridate', 'parallel', 'plotly', 'scico', 'zoo', 'shiny'), repos='http://cran.rstudio.com/')
+install.packages(c('devtools', 'crosstalk', 'doParallel', 'DT', 'foreach', 'htmltools', 'lubridate', 'parallel', 'plotly', 'scico', 'tidyverse', 'zoo', 'dplyr', 'tibble', 'tidyr', 'MMWRweek', 'purrr', 'ggplot2', 'magrittr', 'Matrix', 'NlcOptim', 'zeallot', 'googledrive', 'yaml', 'here', 'tictoc', 'furrr', 'matrixStats', 'ggpubr'), repos='http://cran.rstudio.com/')
 ```
 
 
@@ -160,6 +200,7 @@ devtools::install_github('reichlab/covidData')
 devtools::install_github('reichlab/covidModels', subdir='R-package')
 devtools::install_github("reichlab/zoltr")
 devtools::install_github("reichlab/covidHubUtils")
+devtools::install_github('reichlab/covidEnsembles')
 ```
 
 
