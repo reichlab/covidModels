@@ -51,6 +51,10 @@ Follow the instructions [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGui
 `sudo yum update -y`
 
 
+# update ec2-metadata
+The default version of the `ec2-metadata` script is out of date. Update it by editing the script via `sudo emacs /usr/bin/ec2-metadata` and replacing it with that of https://raw.githubusercontent.com/aws/amazon-ec2-utils/main/ec2-metadata .
+
+
 # set up timezone
 `sudo timedatectl set-timezone UTC`
 
