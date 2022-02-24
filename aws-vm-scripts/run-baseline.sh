@@ -67,9 +67,10 @@ if [ $? -eq 0 ]; then
   done
 
   if [ $NUM_PDF_DIRS -ne 1 ]; then
-    slack_message "PDF_DIR error: not exactly 1 PDF dir. NUM_PDF_DIRS=${NUM_PDF_DIRS}. date=$(date), uname=$(uname -n)"
+    slack_message "PDF_DIR error: not exactly 1 PDF dir. PDF_DIRS=${PDF_DIRS}, NUM_PDF_DIRS=${NUM_PDF_DIRS}. date=$(date), uname=$(uname -n)"
   else
     slack_message "PDF_DIR success: PDF_DIR=${PDF_DIR}. date=$(date), uname=$(uname -n)"
+    MONDAY_DATE=$(basename ${PDF_DIR}) # e.g., "2022-01-31"
 
     # create and push branch with new CSV file. we could first sync w/upstream and then push to the fork, but this is
     # unnecessary for this script because `make all` gets the data it needs from the net and not the ${HUB_DIR}. note
@@ -85,7 +86,6 @@ if [ $? -eq 0 ]; then
     # git merge upstream/master                  # update fork from original repo to keep up with their changes
     # git push origin master                     # sync with fork
 
-    MONDAY_DATE=$(basename ${PDF_DIR})            # e.g., 2022-01-31
     NEW_BRANCH_NAME="baseline-${MONDAY_DATE//-/}" # remove '-'. per https://tldp.org/LDP/abs/html/string-manipulation.html
     CSV_DIR="${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline"
     slack_message "creating branch and pushing. MONDAY_DATE=${MONDAY_DATE}, NEW_BRANCH_NAME=${NEW_BRANCH_NAME}, CSV_DIR=${CSV_DIR}. date=$(date), uname=$(uname -n)"

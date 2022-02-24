@@ -148,11 +148,30 @@ fi
 
 slack_message "app PRs succeeded; uploading reports. date=$(date), uname=$(uname -n)"
 
-cd ${WEEKLY_ENSEMBLE_DIR}/plots
-UPLOAD_FILES="COVIDhub-4_week_ensemble/${TODAY_DATE}/*.pdf COVIDhub-ensemble/${TODAY_DATE}/*.pdf COVIDhub-trained_ensemble/${TODAY_DATE}/*.pdf weight_reports/fig-ensemble_weight_${TODAY_DATE}.html loss_plot_${TODAY_DATE}.pdf ${TODAY_DATE}/*.pdf "
-for UPLOAD_FILE in ${UPLOAD_FILES}; do
-   slack_upload ${UPLOAD_FILE}
+# to find reports we first need the Monday date that the Rscript scripts used when creating files and dirs. we do so
+# indirectly by looking for the file loss_plot_${TODAY_DATE}.pdf and then extracting the YYYY-MM-DD date from it. there
+# should be exactly one file.
+
+LOSS_PLOT_PDFS=$(find ${WEEKLY_ENSEMBLE_DIR}/plots/loss_plot_*.pdf)
+NUM_FILES=0
+for PDF_FILE in $LOSS_PLOT_PDFS; do
+  ((NUM_FILES++))
 done
+
+if [ $NUM_FILES -ne 1 ]; then
+  slack_message "PDF_FILE error: not exactly 1 loss plot PDF file. LOSS_PLOT_PDFS=${LOSS_PLOT_PDFS}, NUM_FILES=${NUM_FILES}. date=$(date), uname=$(uname -n)"
+else
+  slack_message "PDF_FILE success: PDF_FILE=${PDF_FILE}. date=$(date), uname=$(uname -n)"
+  PDF_FILE_BASENAME=$(basename ${PDF_FILE}) # e.g., "loss_plot_2022-02-21.pdf"
+  MONDAY_DATE=${PDF_FILE_BASENAME:10:10}    # substring extraction per https://tldp.org/LDP/abs/html/string-manipulation.html
+
+  # upload the files
+  cd ${WEEKLY_ENSEMBLE_DIR}/plots
+  UPLOAD_FILES="COVIDhub-4_week_ensemble/${MONDAY_DATE}/*.pdf COVIDhub-ensemble/${MONDAY_DATE}/*.pdf COVIDhub-trained_ensemble/${MONDAY_DATE}/*.pdf weight_reports/fig-ensemble_weight_${TODAY_DATE}.html loss_plot_${MONDAY_DATE}.pdf ${MONDAY_DATE}/*.pdf "
+  for UPLOAD_FILE in ${UPLOAD_FILES}; do
+    slack_upload ${UPLOAD_FILE}
+  done
+fi
 
 #
 # done!
