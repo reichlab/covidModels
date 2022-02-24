@@ -6,7 +6,7 @@ GIT_DIRS=/data/*
 for GIT_DIR in ${GIT_DIRS}; do
   echo -e "\n* ${GIT_DIR}"
   pushd ${GIT_DIR}
-  git status
+  git status --ignored
   popd
 done
 
