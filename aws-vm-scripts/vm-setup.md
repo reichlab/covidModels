@@ -69,7 +69,6 @@ pip3 install requests
 
 # utilities and required OS libs
 ```bash
-sudo yum update -y
 sudo yum install -y git
 sudo yum install -y emacs
 sudo yum install -y htop
