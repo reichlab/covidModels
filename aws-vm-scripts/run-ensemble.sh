@@ -88,21 +88,21 @@ Rscript -e "rmarkdown::render('fig-ensemble_weight.Rmd', output_file = paste0('p
 slack_message "running Rscript 6/6: plot_losses.R. date=$(date), uname=$(uname -n)"
 Rscript plot_losses.R >>${OUT_FILE} 2>&1
 
-# main_pr
-slack_message "creating main_pr. date=$(date), uname=$(uname -n)"
-(git -C ${HUB_DIR} checkout main || git -C ${HUB_DIR} checkout -b main) &&
+# primary_pr
+slack_message "creating primary_pr. date=$(date), uname=$(uname -n)"
+(git -C ${HUB_DIR} checkout primary || git -C ${HUB_DIR} checkout -b primary) &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/ensemble-metadata/* ${HUB_DIR}/ensemble-metadata/ &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/data-processed/COVIDhub-ensemble/* ${HUB_DIR}/data-processed/COVIDhub-ensemble/ &&
   cd ${HUB_DIR} &&
   git add -A &&
   git commit -m "${TODAY_DATE} ensemble" &&
-  git push origin main &&
-  PR_URL=$(gh pr create --title "${TODAY_DATE} ensemble" --body "Main Ensemble, COVID19 Forecast Hub")
+  git push -u origin primary &&
+  PR_URL=$(gh pr create --title "${TODAY_DATE} ensemble" --body "Primary Ensemble, COVID19 Forecast Hub")
 
 if [ $? -eq 0 ]; then
-  slack_message "main_pr OK. PR_URL=${PR_URL}. date=$(date), uname=$(uname -a)"
+  slack_message "primary_pr OK. PR_URL=${PR_URL}. date=$(date), uname=$(uname -a)"
 else
-  slack_message "main_pr failed. date=$(date), uname=$(uname -a)"
+  slack_message "primary_pr failed. date=$(date), uname=$(uname -a)"
   do_shutdown
 fi
 
@@ -114,7 +114,7 @@ slack_message "creating trained_pr. date=$(date), uname=$(uname -n)"
   cd ${HUB_DIR} &&
   git add -A &&
   git commit -m "${TODAY_DATE} trained ensemble" &&
-  git push origin trained &&
+  git push -u origin trained &&
   PR_URL=$(gh pr create --title "${TODAY_DATE} trained ensemble" --body "Trained Ensemble, COVID19 Forecast Hub")
 
 if [ $? -eq 0 ]; then
@@ -132,7 +132,7 @@ slack_message "creating 4wk_pr. date=$(date), uname=$(uname -n)"
   cd ${HUB_DIR} &&
   git add -A &&
   git commit -m "${TODAY_DATE} 4 week ensemble" &&
-  git push origin 4wk &&
+  git push -u origin 4wk &&
   PR_URL=$(gh pr create --title "${TODAY_DATE} 4 week ensemble" --body "4 Week Ensemble, COVID19 Forecast Hub")
 
 if [ $? -eq 0 ]; then
@@ -149,10 +149,9 @@ fi
 slack_message "app PRs succeeded; uploading reports. date=$(date), uname=$(uname -n)"
 
 cd ${WEEKLY_ENSEMBLE_DIR}/plots
-UPLOAD_FILES="${TODAY_DATE}/*.pdf COVIDhub-4_week_ensemble/${TODAY_DATE}/*.pdf COVIDhub-ensemble/${TODAY_DATE}/*.pdf COVIDhub-trained_ensemble/${TODAY_DATE}/*.pdf weight_reports/fig-ensemble_weight_${TODAY_DATE}.html loss_plot_${TODAY_DATE}.pdf"
+UPLOAD_FILES="COVIDhub-4_week_ensemble/${TODAY_DATE}/*.pdf COVIDhub-ensemble/${TODAY_DATE}/*.pdf COVIDhub-trained_ensemble/${TODAY_DATE}/*.pdf weight_reports/fig-ensemble_weight_${TODAY_DATE}.html loss_plot_${TODAY_DATE}.pdf ${TODAY_DATE}/*.pdf "
 for UPLOAD_FILE in ${UPLOAD_FILES}; do
-  # slack_upload ${UPLOAD_FILE}
-  echo ${UPLOAD_FILE}
+   slack_upload ${UPLOAD_FILE}
 done
 
 #
