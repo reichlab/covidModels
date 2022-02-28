@@ -82,7 +82,7 @@ if [ $? -eq 0 ]; then
     slack_message "NOT updating HUB_DIR=${HUB_DIR}. date=$(date), uname=$(uname -n)"
     cd "${HUB_DIR}"
     # git fetch upstream                         # pull down the latest source from original repo
-    # git checkout master                        # ensure I'm on local master
+    git checkout master                          # ensure I'm on local master
     # git merge upstream/master                  # update fork from original repo to keep up with their changes
     # git push origin master                     # sync with fork
 
