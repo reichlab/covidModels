@@ -94,7 +94,7 @@ if [ $? -eq 0 ]; then
     cp ${CSV_DIR}/*.csv ${HUB_DIR}/data-processed/COVIDhub-baseline
     git add data-processed/COVIDhub-baseline/\*
     git commit -m "baseline build, ${MONDAY_DATE}"
-    git push origin ${NEW_BRANCH_NAME} # unsure whether `--set-upstream` needed. seems OK without it
+    git push -u origin ${NEW_BRANCH_NAME}
     PUSH_RESULT=$?
 
     if [ $PUSH_RESULT -eq 0 ]; then
