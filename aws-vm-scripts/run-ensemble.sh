@@ -36,7 +36,7 @@ rm -f ${WEEKLY_ENSEMBLE_DIR}/thetas-*
 slack_message "deleting any old branches. date=$(date), uname=$(uname -n)"
 BRANCHES="primary trained 4wk"
 for BRANCH in ${BRANCHES}; do
-git checkout master
+  git checkout master
   git push origin --delete ${BRANCH}    # delete remote branch
   git fetch --prune origin              # delete remote tracking branch (prune removes any remote tracking branch in your local repository that points to a remote branch that has been deleted on the server)
   git branch --delete --force ${BRANCH} # delete local branch
