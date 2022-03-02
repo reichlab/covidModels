@@ -27,7 +27,7 @@ slack_message "updating HUB_DIR=${HUB_DIR} and HUB_WEB_DIR=${HUB_WEB_DIR}. date=
 # need them; all we're concerned with is adding new files to a new branch and pushing them.
 cd "${HUB_DIR}"
 git fetch upstream        # pull down the latest source from original repo
-git checkout master       # ensure I'm on local master
+git checkout master
 git merge upstream/master # update fork from original repo to keep up with their changes
 
 cd ${HUB_WEB_DIR}

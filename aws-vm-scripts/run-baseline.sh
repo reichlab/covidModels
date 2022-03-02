@@ -82,14 +82,18 @@ if [ $? -eq 0 ]; then
     slack_message "NOT updating HUB_DIR=${HUB_DIR}. date=$(date), uname=$(uname -n)"
     cd "${HUB_DIR}"
     # git fetch upstream                         # pull down the latest source from original repo
-    git checkout master                          # ensure I'm on local master
+    git checkout master
     # git merge upstream/master                  # update fork from original repo to keep up with their changes
     # git push origin master                     # sync with fork
 
     NEW_BRANCH_NAME="baseline-${MONDAY_DATE//-/}" # remove '-'. per https://tldp.org/LDP/abs/html/string-manipulation.html
-    CSV_DIR="${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline"
-    slack_message "creating branch and pushing. MONDAY_DATE=${MONDAY_DATE}, NEW_BRANCH_NAME=${NEW_BRANCH_NAME}, CSV_DIR=${CSV_DIR}. date=$(date), uname=$(uname -n)"
+    slack_message "deleting any old branches. MONDAY_DATE=${MONDAY_DATE}, NEW_BRANCH_NAME=${NEW_BRANCH_NAME}. date=$(date), uname=$(uname -n)"
+    git checkout master
+    git branch --delete --force ${NEW_BRANCH_NAME} # delete local branch
+    git push origin --delete ${NEW_BRANCH_NAME}    # delete remote branch
 
+    CSV_DIR="${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline"
+    slack_message "creating branch and pushing. CSV_DIR=${CSV_DIR}. date=$(date), uname=$(uname -n)"
     git checkout -b ${NEW_BRANCH_NAME}
     cp ${CSV_DIR}/*.csv ${HUB_DIR}/data-processed/COVIDhub-baseline
     git add data-processed/COVIDhub-baseline/\*
@@ -105,11 +109,8 @@ if [ $? -eq 0 ]; then
       slack_message "push failed. date=$(date), uname=$(uname -n)"
     fi
 
-    slack_message "deleting local branch. date=$(date), uname=$(uname -n)"
-    git checkout master              # change back to main branch
-    git branch -D ${NEW_BRANCH_NAME} # remove baseline branch from local
-
     # done with branch. upload PDFs, and optionally zipped CSV file (if push failed)
+    git checkout master
     slack_message "uploading log, PDFs, [CSVs]. date=$(date), uname=$(uname -n)"
     slack_upload ${OUT_FILE}
 
