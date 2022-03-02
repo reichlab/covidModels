@@ -89,9 +89,8 @@ if [ $? -eq 0 ]; then
     NEW_BRANCH_NAME="baseline-${MONDAY_DATE//-/}" # remove '-'. per https://tldp.org/LDP/abs/html/string-manipulation.html
     slack_message "deleting any old branches. MONDAY_DATE=${MONDAY_DATE}, NEW_BRANCH_NAME=${NEW_BRANCH_NAME}. date=$(date), uname=$(uname -n)"
     git checkout master
-    git push origin --delete ${NEW_BRANCH_NAME}    # delete remote branch
-    git fetch --prune origin                       # delete remote tracking branch (prune removes any remote tracking branch in your local repository that points to a remote branch that has been deleted on the server)
     git branch --delete --force ${NEW_BRANCH_NAME} # delete local branch
+    git push origin --delete ${NEW_BRANCH_NAME}    # delete remote branch
 
     CSV_DIR="${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline"
     slack_message "creating branch and pushing. CSV_DIR=${CSV_DIR}. date=$(date), uname=$(uname -n)"

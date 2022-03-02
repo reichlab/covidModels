@@ -34,12 +34,11 @@ rm -rf ${WEEKLY_ENSEMBLE_DIR}/plots/
 rm -f ${WEEKLY_ENSEMBLE_DIR}/thetas-*
 
 slack_message "deleting any old branches. date=$(date), uname=$(uname -n)"
+git checkout master
 BRANCHES="primary trained 4wk"
 for BRANCH in ${BRANCHES}; do
-  git checkout master
-  git push origin --delete ${BRANCH}    # delete remote branch
-  git fetch --prune origin              # delete remote tracking branch (prune removes any remote tracking branch in your local repository that points to a remote branch that has been deleted on the server)
   git branch --delete --force ${BRANCH} # delete local branch
+  git push origin --delete ${BRANCH}    # delete remote branch
 done
 
 #
@@ -99,7 +98,7 @@ Rscript plot_losses.R >>${OUT_FILE} 2>&1
 
 # primary_pr
 slack_message "creating primary_pr. date=$(date), uname=$(uname -n)"
-(git -C ${HUB_DIR} checkout primary || git -C ${HUB_DIR} checkout -b primary) &&
+git -C ${HUB_DIR} checkout -b primary &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/ensemble-metadata/* ${HUB_DIR}/ensemble-metadata/ &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/data-processed/COVIDhub-ensemble/* ${HUB_DIR}/data-processed/COVIDhub-ensemble/ &&
   cd ${HUB_DIR} &&
@@ -117,7 +116,7 @@ fi
 
 # trained_pr
 slack_message "creating trained_pr. date=$(date), uname=$(uname -n)"
-(git -C ${HUB_DIR} checkout trained || git -C ${HUB_DIR} checkout -b trained) &&
+git -C ${HUB_DIR} checkout -b trained &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/trained_ensemble-metadata/* ${HUB_DIR}/trained_ensemble-metadata/ &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/data-processed/COVIDhub-trained_ensemble/* ${HUB_DIR}/data-processed/COVIDhub-trained_ensemble/ &&
   cd ${HUB_DIR} &&
@@ -135,7 +134,7 @@ fi
 
 # 4wk_pr
 slack_message "creating 4wk_pr. date=$(date), uname=$(uname -n)"
-(git -C ${HUB_DIR} checkout 4wk || git -C ${HUB_DIR} checkout -b 4wk) &&
+git -C ${HUB_DIR} checkout -b 4wk &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/4_week_ensemble-metadata/* ${HUB_DIR}/4_week_ensemble-metadata/ &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/data-processed/COVIDhub-4_week_ensemble/* ${HUB_DIR}/data-processed/COVIDhub-4_week_ensemble/ &&
   cd ${HUB_DIR} &&
