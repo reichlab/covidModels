@@ -33,6 +33,15 @@ rm -rf ${WEEKLY_ENSEMBLE_DIR}/forecasts/
 rm -rf ${WEEKLY_ENSEMBLE_DIR}/plots/
 rm -f ${WEEKLY_ENSEMBLE_DIR}/thetas-*
 
+slack_message "deleting any old branches. date=$(date), uname=$(uname -n)"
+BRANCHES="primary trained 4wk"
+for BRANCH in ${BRANCHES}; do
+git checkout master
+  git push origin --delete ${BRANCH}    # delete remote branch
+  git fetch --prune origin              # delete remote tracking branch (prune removes any remote tracking branch in your local repository that points to a remote branch that has been deleted on the server)
+  git branch --delete --force ${BRANCH} # delete local branch
+done
+
 #
 # sync covid19-forecast-hub fork with upstream. note that we do not pull changes from the fork because we frankly don't
 # need them; all we're concerned with is adding new files to a new branch and pushing them.
@@ -42,8 +51,8 @@ HUB_DIR="/data/covid19-forecast-hub" # a fork
 slack_message "updating HUB_DIR=${HUB_DIR}. date=$(date), uname=$(uname -n)"
 
 cd "${HUB_DIR}"
-git fetch upstream        # pull down the latest source from original repo
-git checkout master       # ensure I'm on local master
+git fetch upstream # pull down the latest source from original repo
+git checkout master
 git merge upstream/master # update fork from original repo to keep up with their changes
 
 # update covidEnsembles repo
