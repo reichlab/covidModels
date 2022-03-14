@@ -70,6 +70,8 @@ echo -n >${OUT_FILE} # truncate
 slack_message "tagging inputs. date=$(date), uname=$(uname -n)"
 git -C ${HUB_DIR} tag -a ${TODAY_DATE}-COVIDhub-ensemble -m "${TODAY_DATE}-COVIDhub-ensemble build inputs"
 git -C ${HUB_DIR} push origin ${TODAY_DATE}-COVIDhub-ensemble
+git -C ${HUB_DIR} push --tags origin
+git -C ${HUB_DIR} push --tags upstream
 
 #
 # build the model via a series of six R scripts
