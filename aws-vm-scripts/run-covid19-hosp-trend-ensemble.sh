@@ -26,7 +26,7 @@ source $(dirname "$0")/slack.sh
 slack_message "$0 entered. date=$(date), uname=$(uname -n)"
 
 #
-# update covid-hosp-models and covidData repos, and sync covid19-forecast-hub fork with upstream
+# update covid-hosp-models and covidData repos, sync covid19-forecast-hub fork with upstream, delete old branch
 #
 
 COVID_HOSP_MODELS_DIR="/data/covid-hosp-models"
@@ -49,11 +49,8 @@ git fetch upstream # pull down the latest source from original repo
 git checkout master
 git merge upstream/master # update fork from original repo to keep up with their changes
 
-#
 # delete old branch
-#
-
-# todo xx: need to delete? name?
+slack_message "deleting old branche. date=$(date), uname=$(uname -n)"
 BRANCH_NAME='covid-hosp-models'
 git branch --delete --force ${BRANCH_NAME} # delete local branch
 git push origin --delete ${BRANCH_NAME}    # delete remote branch
