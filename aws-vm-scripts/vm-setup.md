@@ -206,7 +206,7 @@ devtools::install_github("reichlab/covidHubUtils")
 devtools::install_github('reichlab/covidEnsembles')
 devtools::install_github("reichlab/hubEnsembles")
 devtools::install_github("reichlab/simplets")
-devtools::install_github('elray1/epitools')
+devtools::install_github('elray1/epitools', ref = 'outlier_correction')
 ```
 
 
