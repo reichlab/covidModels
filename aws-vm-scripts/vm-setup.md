@@ -111,7 +111,7 @@ wget https://download.osgeo.org/proj/proj-6.1.1.tar.gz
 tar -xvf proj-6.1.1.tar.gz
 cd proj-6.1.1
 ./configure
-time sudo make
+sudo make
 sudo make install
 which proj ; proj
 ```
@@ -122,7 +122,7 @@ wget https://github.com/OSGeo/gdal/releases/download/v3.2.1/gdal-3.2.1.tar.gz
 tar -xvf gdal-3.2.1.tar.gz
 cd gdal-3.2.1
 ./configure --with-proj=/usr/local --with-python
-time sudo make
+sudo make
 sudo make install
 which gdalinfo ; gdalinfo --version
 ```
@@ -191,7 +191,7 @@ You should then have this results, where #1 is the `ec2-user` home R library loc
 Here then are the packages to install from within the `R` interpreter as `ec2-user`. Note that I may have missed some here :-/
 
 ```R
-install.packages(c('devtools', 'crosstalk', 'doParallel', 'DT', 'foreach', 'htmltools', 'lubridate', 'parallel', 'plotly', 'scico', 'tidyverse', 'zoo', 'dplyr', 'tibble', 'tidyr', 'MMWRweek', 'purrr', 'ggplot2', 'magrittr', 'Matrix', 'NlcOptim', 'zeallot', 'googledrive', 'yaml', 'here', 'tictoc', 'furrr', 'matrixStats', 'ggpubr'), repos='http://cran.rstudio.com/')
+install.packages(c('devtools', 'crosstalk', 'doParallel', 'DT', 'foreach', 'htmltools', 'lubridate', 'parallel', 'plotly', 'scico', 'tidyverse', 'zoo', 'dplyr', 'tibble', 'tidyr', 'MMWRweek', 'purrr', 'ggplot2', 'magrittr', 'Matrix', 'NlcOptim', 'zeallot', 'googledrive', 'yaml', 'here', 'tictoc', 'furrr', 'matrixStats', 'ggpubr', 'ggforce', 'covidcast', 'car', 'fabletools', 'feasts', , 'rvest', 'here', 'tidyverse'), repos='http://cran.rstudio.com/')
 ```
 
 
@@ -204,6 +204,9 @@ devtools::install_github('reichlab/covidModels', subdir='R-package')
 devtools::install_github("reichlab/zoltr")
 devtools::install_github("reichlab/covidHubUtils")
 devtools::install_github('reichlab/covidEnsembles')
+devtools::install_github("reichlab/hubEnsembles")
+devtools::install_github("reichlab/simplets")
+devtools::install_github('elray1/epitools')
 ```
 
 
@@ -211,9 +214,13 @@ devtools::install_github('reichlab/covidEnsembles')
 NB: For the `covid19-forecast-hub` repo we use the `reichlabmachine` fork and its personal access token - see **GitHub configuration** in README.md.
 
 ```bash
-cd /data
-git clone https://github.com/reichlab/covidModels.git
-git clone https://github.com/reichlab/covidData.git
+git -C /data clone https://github.com/reichlab/covidModels.git
+git -C /data clone https://github.com/reichlab/covidData.git
+git -C /data clone https://github.com/reichlab/covid19-forecast-hub-web.git
+git -C /data clone https://github.com/reichlab/covidEnsembles.git
+git -C /data clone https://github.com/reichlab/covid-hosp-models.git
+git -C /data clone https://github.com/reichlab/flu-hosp-models-2021-2022.git
+git -C /data clone https://github.com/reichlabmachine/sandbox.git
 
 # clone the covid19-forecast-hub fork and do a one-time setup of sync
 git clone https://github.com/reichlabmachine/covid19-forecast-hub.git
@@ -221,9 +228,12 @@ cd /data/covid19-forecast-hub
 git remote add upstream https://github.com/reichlab/covid19-forecast-hub.git
 git fetch upstream
 git pull upstream master
-git config credential.helper store
 
-cd /data
-git clone https://github.com/reichlab/covid19-forecast-hub-web.git
-git config credential.helper store
+# set up git credentials
+for REPO_DIR in /data/*; do
+  echo "${REPO_DIR}"
+  git -C ${REPO_DIR} config credential.helper store
+done
+  
+/data/covidModels/aws-vm-scripts/sandbox.sh  # should ask for personal access token first time
 ```

@@ -44,9 +44,10 @@ make -C /data/covidData/code/data-processing all
 
 OUT_FILE=/tmp/run-baseline-out.txt
 
-slack_message "deleting any old files and running make. date=$(date), uname=$(uname -n)"
+slack_message "deleting old files and running make. date=$(date), uname=$(uname -n)"
 find ${COVID_MODELS_DIR}/weekly-submission/COVIDhub-baseline-plots -maxdepth 1 -mindepth 1 -type d -exec rm -rf '{}' \;
 rm -f ${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline/*.csv
+
 make -C "${COVID_MODELS_DIR}/weekly-submission" all >${OUT_FILE} 2>&1
 
 #
@@ -87,7 +88,7 @@ if [ $? -eq 0 ]; then
     # git push origin master                     # sync with fork
 
     NEW_BRANCH_NAME="baseline-${MONDAY_DATE//-/}" # remove '-'. per https://tldp.org/LDP/abs/html/string-manipulation.html
-    slack_message "deleting any old branches. MONDAY_DATE=${MONDAY_DATE}, NEW_BRANCH_NAME=${NEW_BRANCH_NAME}. date=$(date), uname=$(uname -n)"
+    slack_message "deleting old branches. MONDAY_DATE=${MONDAY_DATE}, NEW_BRANCH_NAME=${NEW_BRANCH_NAME}. date=$(date), uname=$(uname -n)"
     git checkout master
     git branch --delete --force ${NEW_BRANCH_NAME} # delete local branch
     git push origin --delete ${NEW_BRANCH_NAME}    # delete remote branch

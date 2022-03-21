@@ -28,12 +28,12 @@ slack_message "$0 entered. date=$(date), uname=$(uname -n)"
 ENSEMBLES_DIR="/data/covidEnsembles"
 WEEKLY_ENSEMBLE_DIR=${ENSEMBLES_DIR}/code/application/weekly-ensemble
 
-slack_message "deleting any old files. date=$(date), uname=$(uname -n)"
+slack_message "deleting old files. date=$(date), uname=$(uname -n)"
 rm -rf ${WEEKLY_ENSEMBLE_DIR}/forecasts/
 rm -rf ${WEEKLY_ENSEMBLE_DIR}/plots/
 rm -f ${WEEKLY_ENSEMBLE_DIR}/thetas-*
 
-slack_message "deleting any old branches. date=$(date), uname=$(uname -n)"
+slack_message "deleting old branches. date=$(date), uname=$(uname -n)"
 git checkout master
 BRANCHES="primary trained 4wk"
 for BRANCH in ${BRANCHES}; do
@@ -105,7 +105,7 @@ git -C ${HUB_DIR} checkout master &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/ensemble-metadata/* ${HUB_DIR}/ensemble-metadata/ &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/data-processed/COVIDhub-ensemble/* ${HUB_DIR}/data-processed/COVIDhub-ensemble/ &&
   cd ${HUB_DIR} &&
-  git add -A &&
+  git add ${HUB_DIR}/ensemble-metadata/ ${HUB_DIR}/data-processed/COVIDhub-ensemble/ &&
   git commit -m "${TODAY_DATE} ensemble" &&
   git push -u origin primary &&
   PR_URL=$(gh pr create --title "${TODAY_DATE} ensemble" --body "Primary Ensemble, COVID19 Forecast Hub")
@@ -124,7 +124,7 @@ git -C ${HUB_DIR} checkout master &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/trained_ensemble-metadata/* ${HUB_DIR}/trained_ensemble-metadata/ &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/data-processed/COVIDhub-trained_ensemble/* ${HUB_DIR}/data-processed/COVIDhub-trained_ensemble/ &&
   cd ${HUB_DIR} &&
-  git add -A &&
+  git add ${HUB_DIR}/trained_ensemble-metadata/ ${HUB_DIR}/data-processed/COVIDhub-trained_ensemble/ &&
   git commit -m "${TODAY_DATE} trained ensemble" &&
   git push -u origin trained &&
   PR_URL=$(gh pr create --title "${TODAY_DATE} trained ensemble" --body "Trained Ensemble, COVID19 Forecast Hub")
@@ -143,7 +143,7 @@ git -C ${HUB_DIR} checkout master &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/4_week_ensemble-metadata/* ${HUB_DIR}/4_week_ensemble-metadata/ &&
   cp ${WEEKLY_ENSEMBLE_DIR}/forecasts/data-processed/COVIDhub-4_week_ensemble/* ${HUB_DIR}/data-processed/COVIDhub-4_week_ensemble/ &&
   cd ${HUB_DIR} &&
-  git add -A &&
+  git add ${HUB_DIR}/4_week_ensemble-metadata/ ${HUB_DIR}/data-processed/COVIDhub-4_week_ensemble/ &&
   git commit -m "${TODAY_DATE} 4 week ensemble" &&
   git push -u origin 4wk &&
   PR_URL=$(gh pr create --title "${TODAY_DATE} 4 week ensemble" --body "4 Week Ensemble, COVID19 Forecast Hub")

@@ -33,7 +33,7 @@ git merge upstream/master # update fork from original repo to keep up with their
 cd ${HUB_WEB_DIR}
 git pull
 
-slack_message "deleting any old files and running render_reports.R. date=$(date), uname=$(uname -n)"
+slack_message "deleting old files and running render_reports.R. date=$(date), uname=$(uname -n)"
 rm -f ${HUB_DIR}/code/reports/*.html
 
 OUT_FILE=/tmp/run-weekly-reports-out.txt
