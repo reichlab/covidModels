@@ -34,6 +34,8 @@ rm -rf ${WEEKLY_ENSEMBLE_DIR}/plots/
 rm -f ${WEEKLY_ENSEMBLE_DIR}/thetas-*
 
 slack_message "deleting old branches. date=$(date), uname=$(uname -n)"
+HUB_DIR="/data/covid19-forecast-hub" # a fork
+cd "${HUB_DIR}"
 git checkout master
 BRANCHES="primary trained 4wk"
 for BRANCH in ${BRANCHES}; do
@@ -46,7 +48,6 @@ done
 # need them; all we're concerned with is adding new files to a new branch and pushing them.
 #
 
-HUB_DIR="/data/covid19-forecast-hub" # a fork
 slack_message "updating HUB_DIR=${HUB_DIR}. date=$(date), uname=$(uname -n)"
 
 cd "${HUB_DIR}"
