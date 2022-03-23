@@ -1,13 +1,13 @@
 #!/bin/bash
 
 #
-# A wrapper script to run the baseline model, messaging slack with progress and results.
+# A wrapper script to run the covid19 hospital trend ensemble model, messaging slack with progress and results.
 # - run as `ec2-user`, not root
 #
 
 # define utility function - used for both normal and abnormal exits
 do_shutdown() {
-  slack_message "done. shutting down. date=$(date), uname=$(uname -n)"
+  slack_message "done. shutting down"
   sudo shutdown now -h
 }
 
@@ -23,7 +23,7 @@ source $(dirname "$0")/slack.sh
 # start
 #
 
-slack_message "$0 entered. date=$(date), uname=$(uname -n)"
+slack_message "starting"
 
 #
 # update covid-hosp-models and covidData repos, sync covid19-forecast-hub fork with upstream, delete old branch
@@ -35,7 +35,7 @@ WEEKLY_SUBMISSION_DIR=${COVID_HOSP_MODELS_DIR}/weekly-submission
 git -C ${COVID_HOSP_MODELS_DIR} pull
 
 # update covidData library
-slack_message "updating covidData library. date=$(date), uname=$(uname -n)"
+slack_message "updating covidData library"
 COVID_DATA_DIR="/data/covidData"
 git -C ${COVID_DATA_DIR} pull
 make -C ${COVID_DATA_DIR}/code/data-processing all
@@ -49,7 +49,7 @@ git checkout master
 git merge upstream/master # update fork from original repo to keep up with their changes
 
 # delete old branch
-slack_message "deleting old branch. date=$(date), uname=$(uname -n)"
+slack_message "deleting old branch"
 BRANCH_NAME='covid-hosp-models'
 git branch --delete --force ${BRANCH_NAME} # delete local branch
 git push origin --delete ${BRANCH_NAME}    # delete remote branch
@@ -58,7 +58,7 @@ git push origin --delete ${BRANCH_NAME}    # delete remote branch
 # run the models
 #
 
-slack_message "running Rscript. date=$(date), uname=$(uname -n)"
+slack_message "running Rscript"
 OUT_FILE=/tmp/run-covid19-hosp-trend-ensemble-out.txt
 cd ${COVID_HOSP_MODELS_DIR}
 Rscript R/baseline.R >>${OUT_FILE} 2>&1
@@ -78,11 +78,11 @@ for PDF_FILE in $NEW_PDFS; do
 done
 
 if [ $NUM_FILES -ne 1 ]; then
-  slack_message "PDF_FILE error: not exactly one PDF trends_ensemble file to commit. NEW_PDFS=${NEW_PDFS}, NUM_FILES=${NUM_FILES}. date=$(date), uname=$(uname -n)"
+  slack_message "PDF_FILE error: not exactly one PDF trends_ensemble file to commit. NEW_PDFS=${NEW_PDFS}, NUM_FILES=${NUM_FILES}"
   do_shutdown
 fi
 
-slack_message "PDF_FILE success: PDF_FILE=${PDF_FILE}. date=$(date), uname=$(uname -n)"
+slack_message "PDF_FILE success: PDF_FILE=${PDF_FILE}"
 PDF_FILE_BASENAME=$(basename ${PDF_FILE}) # e.g., "2022-03-22-UMass-trends_ensemble.pdf"
 MONDAY_DATE=${PDF_FILE_BASENAME:0:10}     # substring extraction per https://tldp.org/LDP/abs/html/string-manipulation.html
 
@@ -92,7 +92,7 @@ MONDAY_DATE=${PDF_FILE_BASENAME:0:10}     # substring extraction per https://tld
 
 TODAY_DATE=$(date +'%Y-%m-%d') # e.g., 2022-02-17
 CSV_FILE_NAME=${MONDAY_DATE}-UMass-trends_ensemble.csv
-slack_message "creating PR. CSV_FILE_NAME=${CSV_FILE_NAME}. date=$(date), uname=$(uname -n)"
+slack_message "creating PR. CSV_FILE_NAME=${CSV_FILE_NAME}"
 git -C ${HUB_DIR} checkout master &&
   git -C ${HUB_DIR} checkout -b ${BRANCH_NAME} &&
   cp ${WEEKLY_SUBMISSION_DIR}/forecasts/UMass-trends_ensemble/${CSV_FILE_NAME} ${HUB_DIR}/data-processed/UMass-trends_ensemble &&
@@ -103,9 +103,9 @@ git -C ${HUB_DIR} checkout master &&
   PR_URL=$(gh pr create --title "${TODAY_DATE} submission of UMass-trends_ensemble" --body "${TODAY_DATE} submission of UMass-trends_ensemble")
 
 if [ $? -eq 0 ]; then
-  slack_message "PR OK. PR_URL=${PR_URL}. date=$(date), uname=$(uname -a)"
+  slack_message "PR OK. PR_URL=${PR_URL}"
 else
-  slack_message "PR failed. date=$(date), uname=$(uname -a)"
+  slack_message "PR failed"
   do_shutdown
 fi
 
@@ -113,7 +113,7 @@ fi
 # commit and push generated CSV files from all models and the PDF of plots from JUST the trends_ensemble model
 #
 
-slack_message "committing and pushing generated CSV and PDF files. date=$(date), uname=$(uname -n)"
+slack_message "committing and pushing generated CSV and PDF files"
 cd ${COVID_HOSP_MODELS_DIR}
 git add ${WEEKLY_SUBMISSION_DIR}/forecasts/
 git add ${WEEKLY_SUBMISSION_DIR}/baseline-plots/UMass-trends_ensemble/

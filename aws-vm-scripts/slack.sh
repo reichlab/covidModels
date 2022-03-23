@@ -2,7 +2,9 @@
 
 #
 # define slack communication functions
-# - for simplicity we just use curl, which does not support formatted messages
+# - usage: `source $(dirname "$0")/slack.sh`. NB: it's important to load this way so that $0 here will be the loading
+#   script
+# - for simplicity we just use curl, which does not support formatted or multi-line messages
 # - requires these two environment variables to have been loaded (e.g., from ~/.env):
 #     SLACK_API_TOKEN=xoxb-...
 #     CHANNEL_ID=C...
@@ -15,7 +17,8 @@
 slack_message() {
   # post a message to slack. args: $1: message to post. curl silent per https://stackoverflow.com/questions/32488162/curl-suppress-response-body
   echo "slack_message: $1"
-  curl --silent --output /dev/null --show-error --fail -d "text=$1" -d "channel=${CHANNEL_ID}" -H "Authorization: Bearer ${SLACK_API_TOKEN}" -X POST https://slack.com/api/chat.postMessage
+  MESSAGE="[$(basename $0)] $1 [$(date) | $(uname -n)]"
+  curl --silent --output /dev/null --show-error --fail -d "text=${MESSAGE}" -d "channel=${CHANNEL_ID}" -H "Authorization: Bearer ${SLACK_API_TOKEN}" -X POST https://slack.com/api/chat.postMessage
 }
 
 slack_upload() {
