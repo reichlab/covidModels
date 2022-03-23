@@ -78,7 +78,7 @@ for PDF_FILE in $NEW_PDFS; do
 done
 
 if [ $NUM_FILES -ne 1 ]; then
-  slack_message "PDF_FILE error: not exactly one PDF file. NEW_PDFS=${NEW_PDFS}, NUM_FILES=${NUM_FILES}. date=$(date), uname=$(uname -n)"
+  slack_message "PDF_FILE error: not exactly one PDF trends_ensemble file to commit. NEW_PDFS=${NEW_PDFS}, NUM_FILES=${NUM_FILES}. date=$(date), uname=$(uname -n)"
   do_shutdown
 fi
 
@@ -100,13 +100,10 @@ git -C ${HUB_DIR} checkout master &&
   git add ${HUB_DIR}/data-processed/UMass-trends_ensemble/${CSV_FILE_NAME} &&
   git commit -m "${TODAY_DATE} Hosp Trend Ensemble" &&
   git push -u origin ${BRANCH_NAME} &&
-  PR_URL=$(gh pr create --title "${TODAY_DATE} Hosp Trend Ensemble" --body "Hosp Trend Ensemble, COVID19 Forecast Hub")
+  PR_URL=$(gh pr create --title "${TODAY_DATE} submission of UMass-trends_ensemble" --body "${TODAY_DATE} submission of UMass-trends_ensemble")
 
 if [ $? -eq 0 ]; then
   slack_message "PR OK. PR_URL=${PR_URL}. date=$(date), uname=$(uname -a)"
-
-  # todo xx correct to delete just local (but not `origin`) branch?:
-  git branch --delete --force ${BRANCH_NAME} # delete local branch
 else
   slack_message "PR failed. date=$(date), uname=$(uname -a)"
   do_shutdown
@@ -120,7 +117,7 @@ slack_message "committing and pushing generated CSV and PDF files. date=$(date),
 cd ${COVID_HOSP_MODELS_DIR}
 git add ${WEEKLY_SUBMISSION_DIR}/forecasts/
 git add ${WEEKLY_SUBMISSION_DIR}/baseline-plots/UMass-trends_ensemble/
-git commit -m "Hosp Trend Ensemble"
+git commit -m "${TODAY_DATE} submission of UMass-trends_ensemble"
 git push
 
 #
