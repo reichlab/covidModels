@@ -36,7 +36,6 @@ git -C ${COVID_HOSP_MODELS_DIR} pull
 
 # update covidData library
 slack_message "updating covidData library. date=$(date), uname=$(uname -n)"
-
 COVID_DATA_DIR="/data/covidData"
 git -C ${COVID_DATA_DIR} pull
 make -C ${COVID_DATA_DIR}/code/data-processing all
@@ -50,7 +49,7 @@ git checkout master
 git merge upstream/master # update fork from original repo to keep up with their changes
 
 # delete old branch
-slack_message "deleting old branche. date=$(date), uname=$(uname -n)"
+slack_message "deleting old branch. date=$(date), uname=$(uname -n)"
 BRANCH_NAME='covid-hosp-models'
 git branch --delete --force ${BRANCH_NAME} # delete local branch
 git push origin --delete ${BRANCH_NAME}    # delete remote branch
@@ -60,9 +59,7 @@ git push origin --delete ${BRANCH_NAME}    # delete remote branch
 #
 
 slack_message "running Rscript. date=$(date), uname=$(uname -n)"
-
 OUT_FILE=/tmp/run-covid19-hosp-trend-ensemble-out.txt
-
 cd ${COVID_HOSP_MODELS_DIR}
 Rscript R/baseline.R >>${OUT_FILE} 2>&1
 
@@ -81,7 +78,7 @@ for PDF_FILE in $NEW_PDFS; do
 done
 
 if [ $NUM_FILES -ne 1 ]; then
-  slack_message "PDF_FILE error: not exactly 1 PDF file. NEW_PDFS=${NEW_PDFS}, NUM_FILES=${NUM_FILES}. date=$(date), uname=$(uname -n)"
+  slack_message "PDF_FILE error: not exactly one PDF file. NEW_PDFS=${NEW_PDFS}, NUM_FILES=${NUM_FILES}. date=$(date), uname=$(uname -n)"
   do_shutdown
 fi
 
