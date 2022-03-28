@@ -31,7 +31,6 @@ slack_message "starting"
 
 COVID_HOSP_MODELS_DIR="/data/covid-hosp-models"
 WEEKLY_SUBMISSION_DIR=${COVID_HOSP_MODELS_DIR}/weekly-submission
-
 git -C ${COVID_HOSP_MODELS_DIR} pull
 
 # update covidData library
@@ -83,6 +82,7 @@ if [ $NUM_FILES -ne 1 ]; then
 fi
 
 slack_message "PDF_FILE success: PDF_FILE=${PDF_FILE}"
+slack_upload $PDF_FILE
 PDF_FILE_BASENAME=$(basename ${PDF_FILE}) # e.g., "2022-03-22-UMass-trends_ensemble.pdf"
 MONDAY_DATE=${PDF_FILE_BASENAME:0:10}     # substring extraction per https://tldp.org/LDP/abs/html/string-manipulation.html
 

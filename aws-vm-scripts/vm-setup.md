@@ -191,7 +191,7 @@ You should then have this results, where #1 is the `ec2-user` home R library loc
 Here then are the packages to install from within the `R` interpreter as `ec2-user`. Note that I may have missed some here :-/
 
 ```R
-install.packages(c('devtools', 'crosstalk', 'doParallel', 'DT', 'foreach', 'htmltools', 'lubridate', 'parallel', 'plotly', 'scico', 'tidyverse', 'zoo', 'dplyr', 'tibble', 'tidyr', 'MMWRweek', 'purrr', 'ggplot2', 'magrittr', 'Matrix', 'NlcOptim', 'zeallot', 'googledrive', 'yaml', 'here', 'tictoc', 'furrr', 'matrixStats', 'ggpubr', 'ggforce', 'covidcast', 'car', 'fabletools', 'feasts', , 'rvest', 'here', 'tidyverse'), repos='http://cran.rstudio.com/')
+install.packages(c('devtools', 'crosstalk', 'doParallel', 'DT', 'foreach', 'htmltools', 'lubridate', 'parallel', 'plotly', 'scico', 'tidyverse', 'zoo', 'dplyr', 'tibble', 'tidyr', 'MMWRweek', 'purrr', 'ggplot2', 'magrittr', 'Matrix', 'NlcOptim', 'zeallot', 'googledrive', 'yaml', 'here', 'tictoc', 'furrr', 'matrixStats', 'ggpubr', 'ggforce', 'covidcast', 'car', 'fabletools', 'feasts', 'rvest'), repos='http://cran.rstudio.com/')
 ```
 
 
