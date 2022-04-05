@@ -43,12 +43,14 @@ Rscript -e "library(knitr); rmarkdown::render('code/reports/hospital-model-forec
 # as we do in run-weekly-reports.sh (see `gh workflow run blank.yml`) because it's not important enough to warrant the
 # effort. we know a deploy happens in the evening anyway
 OUT_FILE=${HUB_DIR}/code/reports/hospital-model-forecaster-filtering.html
-slack_message "knit done, copying OUT_FILE=${OUT_FILE} to HUB_DIR=${HUB_DIR} root"
+slack_message "knit done, copying OUT_FILE=${OUT_FILE} to HUB_DIR=${HUB_DIR} root and pushing"
 cd ${HUB_WEB_DIR}
 cp -f ${OUT_FILE} ${HUB_WEB_DIR}
 git add $(basename ${OUT_FILE})
 git commit -m "Latest hospital model forecaster filtering file"
 git push
+
+slack_message "push done. The updated file will be at https://covid19forecasthub.org/$(basename ${OUT_FILE}) after the next web site deploy is run."
 
 # done
 slack_message "done. shutting down"
