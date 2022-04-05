@@ -46,7 +46,7 @@ OUT_FILE=${HUB_DIR}/code/reports/hospital-model-forecaster-filtering.html
 slack_message "knit done, copying OUT_FILE=${OUT_FILE} to HUB_DIR=${HUB_DIR} root"
 cd ${HUB_WEB_DIR}
 cp -f ${OUT_FILE} ${HUB_WEB_DIR}
-git add ${OUT_FILE}
+git add $(basename ${OUT_FILE})
 git commit -m "Latest hospital model forecaster filtering file"
 git push
 
