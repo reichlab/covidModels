@@ -78,12 +78,7 @@ The Lambda function [start-baseline-instance](https://console.aws.amazon.com/lam
 
 
 # AWS EventBridge events
-We have set up Amazon EventBridge rules to run the Lambda function on a schedule, specifying which script to start up as described above.
-
-Rules:
-- [MondayMorning9aEST](https://console.aws.amazon.com/events/home?region=us-east-1#/eventbus/default/rules/MondayMorning9aEST): triggers the Lambda function that starts the above EC2 instance, using the cron event schedule `cron(0 13 ? * MON *)` (every Monday at 9AM EST). Passes "run-baseline.sh" for "startup_script". NB: We've had to adjust this +/- 1hr when Daylight Savings Time changes.
-- [MondayAfternoon1pEST](https://us-east-1.console.aws.amazon.com/events/home?region=us-east-1#/eventbus/default/rules/MondayAfternoon1pEST): Similar to "", but runs every Monday at 1PM EST. Passes "run-covid19-hosp-trend-ensemble.sh" for "startup_script".
-- [TuesdayMorning930aEST](https://us-east-1.console.aws.amazon.com/events/home?region=us-east-1#/eventbus/default/rules/TuesdayMorning930aEST): Similar to "", but runs every Tuesday at 9:30AM EST. Passes "run-weekly-reports.sh" for "startup_script". 
+We have set up Amazon EventBridge rules to run the Lambda function on a schedule, specifying which script to start up as described above. Here's an example rule: [MondayMorning9aEST](https://console.aws.amazon.com/events/home?region=us-east-1#/eventbus/default/rules/MondayMorning9aEST): triggers the Lambda function that starts the above EC2 instance, using the cron event schedule `cron(0 13 ? * MON *)` (every Monday at 9AM EST). Passes "run-baseline.sh" for "startup_script". NB: We've had to adjust this +/- 1hr when Daylight Savings Time changes.
 
 
 ## Slack app
