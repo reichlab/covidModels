@@ -99,14 +99,15 @@ git -C ${HUB_DIR} checkout master &&
   cd ${HUB_DIR} &&
   git add ${HUB_DIR}/data-processed/UMass-trends_ensemble/${CSV_FILE_NAME} &&
   git commit -m "${TODAY_DATE} Hosp Trend Ensemble" &&
-  git push -u origin ${BRANCH_NAME} &&
-  PR_URL=$(gh pr create --title "${TODAY_DATE} submission of UMass-trends_ensemble" --body "${TODAY_DATE} submission of UMass-trends_ensemble")
+  git push -u origin ${BRANCH_NAME}
+PUSH_RESULT=$?
 
-if [ $? -eq 0 ]; then
-  slack_message "PR OK. PR_URL=${PR_URL}"
+if [ $PUSH_RESULT -eq 0 ]; then
+  ORIGIN_URL=$(git config --get remote.origin.url) # e.g., https://github.com/reichlabmachine/covid19-forecast-hub.git
+  ORIGIN_URL=${ORIGIN_URL::-4}                     # assumes original clone included ".git"
+  slack_message "push OK. CVS branch=${ORIGIN_URL}/tree/${BRANCH_NAME}"
 else
-  slack_message "PR failed"
-  do_shutdown
+  slack_message "push failed"
 fi
 
 #
