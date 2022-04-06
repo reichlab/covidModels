@@ -97,6 +97,7 @@ if [ $? -eq 0 ]; then
     git add data-processed/COVIDhub-baseline/\*
     git commit -m "baseline build, ${TODAY_DATE}"
     git push -u origin ${BRANCH_NAME}
+    PUSH_RESULT=$?
     PR_URL=$(gh pr create --title "${TODAY_DATE} baseline" --body "baseline, COVID19 Forecast Hub")
 
     if [ $? -eq 0 ]; then
