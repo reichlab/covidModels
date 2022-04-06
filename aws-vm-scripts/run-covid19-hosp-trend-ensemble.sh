@@ -5,12 +5,6 @@
 # - run as `ec2-user`, not root
 #
 
-# define utility function - used for both normal and abnormal exits
-do_shutdown() {
-  slack_message "done. shutting down"
-  sudo shutdown now -h
-}
-
 # set environment variables - per https://stackoverflow.com/questions/19331497/set-environment-variables-from-file-of-key-value-pairs
 set -o allexport
 source ~/.env-covid-19-forecasting

@@ -19,21 +19,16 @@ source $(dirname "$0")/slack.sh
 
 slack_message "starting"
 
-#
 # update covidModels and covidData repos (the covid19-forecast-hub fork is updated post-make)
-#
-
 COVID_MODELS_DIR="/data/covidModels"
-
 cd "${COVID_MODELS_DIR}"
-git pull
-
-cd /data/covidData/
 git pull
 
 # update covidData library
 slack_message "updating covidData library"
-make -C /data/covidData/code/data-processing all
+COVID_DATA_DIR="/data/covidData"
+git -C ${COVID_DATA_DIR} pull
+make -C ${COVID_DATA_DIR}/code/data-processing all
 
 #
 # build the model, first cleaning up outputs from previous runs
@@ -44,10 +39,16 @@ make -C /data/covidData/code/data-processing all
 
 OUT_FILE=/tmp/run-baseline-out.txt
 
-slack_message "deleting old files and running make"
+slack_message "deleting old files"
 find ${COVID_MODELS_DIR}/weekly-submission/COVIDhub-baseline-plots -maxdepth 1 -mindepth 1 -type d -exec rm -rf '{}' \;
 rm -f ${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline/*.csv
 
+slack_message "deleting old branch"
+BRANCH_NAME='baseline'
+git -C ${COVID_MODELS_DIR} branch --delete --force ${BRANCH_NAME} # delete local branch
+git -C ${COVID_MODELS_DIR} push origin --delete ${BRANCH_NAME}    # delete remote branch
+
+slack_message "running make"
 make -C "${COVID_MODELS_DIR}/weekly-submission" all >${OUT_FILE} 2>&1
 
 #
@@ -58,9 +59,12 @@ if [ $? -eq 0 ]; then
   # make had no errors. add new csv file to new branch and then upload log file and pdf files
   slack_message "make OK; collecting PDF and CSV files"
 
-  # determine the Monday date used in the PDF folder, and PDF and CSV filenames, and then get the files for sharing/
-  # uploading/pushing. for simplicity we look for the YYYY-MM-DD date in the PDF folder, rather than re-calculating the
-  # Monday date, which is a little tricky and has already been done by `make`
+  # find the PDF folder created by make. it is named for Monday's date, which is also used PDF and CSV filenames, e.g.,
+  # make creates a file structure like so:
+  #   weekly-submission/COVIDhub-baseline-plots/2022-04-04
+  #   weekly-submission/COVIDhub-baseline-plots/2022-04-04/COVIDhub-baseline-2022-04-04-cases.pdf
+  #   weekly-submission/COVIDhub-baseline-plots/2022-04-04/COVIDhub-baseline-2022-04-04-deaths.pdf
+  #   weekly-submission/COVIDhub-baseline-plots/2022-04-04/COVIDhub-baseline-2022-04-04-hospitalizations.pdf
   PDF_DIRS=$(find ${COVID_MODELS_DIR}/weekly-submission/COVIDhub-baseline-plots -maxdepth 1 -mindepth 1 -type d)
   NUM_PDF_DIRS=0
   for PDF_DIR in $PDF_DIRS; do
@@ -71,7 +75,6 @@ if [ $? -eq 0 ]; then
     slack_message "PDF_DIR error: not exactly 1 PDF dir. PDF_DIRS=${PDF_DIRS}, NUM_PDF_DIRS=${NUM_PDF_DIRS}"
   else
     slack_message "PDF_DIR success: PDF_DIR=${PDF_DIR}"
-    MONDAY_DATE=$(basename ${PDF_DIR}) # e.g., "2022-01-31"
 
     # create and push branch with new CSV file. we could first sync w/upstream and then push to the fork, but this is
     # unnecessary for this script because `make all` gets the data it needs from the net and not the ${HUB_DIR}. note
@@ -80,34 +83,27 @@ if [ $? -eq 0 ]; then
     # changes from the fork because we frankly don't need them; all we're concerned with is adding new files to a new
     # branch and pushing them.
     HUB_DIR="/data/covid19-forecast-hub"
-    slack_message "NOT updating HUB_DIR=${HUB_DIR}"
     cd "${HUB_DIR}"
     # git fetch upstream                         # pull down the latest source from original repo
     git checkout master
     # git merge upstream/master                  # update fork from original repo to keep up with their changes
     # git push origin master                     # sync with fork
 
-    NEW_BRANCH_NAME="baseline-${MONDAY_DATE//-/}" # remove '-'. per https://tldp.org/LDP/abs/html/string-manipulation.html
-    slack_message "deleting old branches. MONDAY_DATE=${MONDAY_DATE}, NEW_BRANCH_NAME=${NEW_BRANCH_NAME}"
-    git checkout master
-    git branch --delete --force ${NEW_BRANCH_NAME} # delete local branch
-    git push origin --delete ${NEW_BRANCH_NAME}    # delete remote branch
-
     CSV_DIR="${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline"
+    TODAY_DATE=$(date +'%Y-%m-%d') # e.g., 2022-02-17
     slack_message "creating branch and pushing. CSV_DIR=${CSV_DIR}"
-    git checkout -b ${NEW_BRANCH_NAME}
+    git checkout -b ${BRANCH_NAME}
     cp ${CSV_DIR}/*.csv ${HUB_DIR}/data-processed/COVIDhub-baseline
     git add data-processed/COVIDhub-baseline/\*
-    git commit -m "baseline build, ${MONDAY_DATE}"
-    git push -u origin ${NEW_BRANCH_NAME}
-    PUSH_RESULT=$?
+    git commit -m "baseline build, ${TODAY_DATE}"
+    git push -u origin ${BRANCH_NAME}
+    PR_URL=$(gh pr create --title "${TODAY_DATE} baseline" --body "baseline, COVID19 Forecast Hub")
 
-    if [ $PUSH_RESULT -eq 0 ]; then
-      ORIGIN_URL=$(git config --get remote.origin.url) # e.g., https://github.com/reichlabmachine/covid19-forecast-hub.git
-      ORIGIN_URL=${ORIGIN_URL::-4}                     # assumes original clone included ".git"
-      slack_message "push OK. CVS branch=${ORIGIN_URL}/tree/${NEW_BRANCH_NAME}"
+    if [ $? -eq 0 ]; then
+      slack_message "PR OK. PR_URL=${PR_URL}"
     else
-      slack_message "push failed"
+      slack_message "PR failed"
+      do_shutdown
     fi
 
     # done with branch. upload PDFs, and optionally zipped CSV file (if push failed)

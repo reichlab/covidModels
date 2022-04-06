@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# define slack communication functions
+# slack communication functions
 # - usage: `source $(dirname "$0")/slack.sh`. NB: it's important to load this way so that $0 here will be the loading
 #   script
 # - for simplicity we just use curl, which does not support formatted or multi-line messages
@@ -16,8 +16,8 @@
 
 slack_message() {
   # post a message to slack. args: $1: message to post. curl silent per https://stackoverflow.com/questions/32488162/curl-suppress-response-body
-  echo "slack_message: $1"
   MESSAGE="[$(basename $0)] $1 [$(date) | $(uname -n)]"
+  echo "slack_message: ${MESSAGE}"
   curl --silent --output /dev/null --show-error --fail -d "text=${MESSAGE}" -d "channel=${CHANNEL_ID}" -H "Authorization: Bearer ${SLACK_API_TOKEN}" -X POST https://slack.com/api/chat.postMessage
 }
 
@@ -30,4 +30,13 @@ slack_upload() {
   else
     echo >&2 "slack_upload: FILE not found: ${FILE}"
   fi
+}
+
+#
+# do_shutdown - used for both normal and abnormal exits
+#
+
+do_shutdown() {
+  slack_message "done. shutting down"
+  sudo shutdown now -h
 }
