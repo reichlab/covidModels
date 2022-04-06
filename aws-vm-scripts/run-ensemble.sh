@@ -5,12 +5,6 @@
 # - run as `ec2-user`, not root
 #
 
-# define utility function - used for both normal and abnormal exits
-do_shutdown() {
-  slack_message "done. shutting down"
-  sudo shutdown now -h
-}
-
 # set environment variables - per https://stackoverflow.com/questions/19331497/set-environment-variables-from-file-of-key-value-pairs
 set -o allexport
 source ~/.env
@@ -61,7 +55,9 @@ git pull
 
 # update covidData library
 slack_message "updating covidData library"
-make -C /data/covidData/code/data-processing all
+COVID_DATA_DIR="/data/covidData"
+git -C ${COVID_DATA_DIR} pull
+make -C ${COVID_DATA_DIR}/code/data-processing all
 
 # tag build inputs
 TODAY_DATE=$(date +'%Y-%m-%d') # e.g., 2022-02-17
