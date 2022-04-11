@@ -44,9 +44,10 @@ find ${COVID_MODELS_DIR}/weekly-submission/COVIDhub-baseline-plots -maxdepth 1 -
 rm -f ${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline/*.csv
 
 slack_message "deleting old branch"
+HUB_DIR="/data/covid19-forecast-hub"
 BRANCH_NAME='baseline'
-git -C ${COVID_MODELS_DIR} branch --delete --force ${BRANCH_NAME} # delete local branch
-git -C ${COVID_MODELS_DIR} push origin --delete ${BRANCH_NAME}    # delete remote branch
+git -C ${HUB_DIR} branch --delete --force ${BRANCH_NAME} # delete local branch
+git -C ${HUB_DIR} push origin --delete ${BRANCH_NAME}    # delete remote branch
 
 slack_message "running make"
 make -C "${COVID_MODELS_DIR}/weekly-submission" all >${OUT_FILE} 2>&1
@@ -82,7 +83,6 @@ if [ $? -eq 0 ]; then
     # up-to-date data, which is why we've kept the commands but commented them out. also note that we do not pull
     # changes from the fork because we frankly don't need them; all we're concerned with is adding new files to a new
     # branch and pushing them.
-    HUB_DIR="/data/covid19-forecast-hub"
     cd "${HUB_DIR}"
     # git fetch upstream                         # pull down the latest source from original repo
     git checkout master
