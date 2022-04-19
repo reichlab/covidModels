@@ -37,17 +37,14 @@ for BRANCH in ${BRANCHES}; do
   git push origin --delete ${BRANCH}    # delete remote branch
 done
 
-#
-# sync covid19-forecast-hub fork with upstream. note that we do not pull changes from the fork because we frankly don't
-# need them; all we're concerned with is adding new files to a new branch and pushing them.
-#
-
-slack_message "updating HUB_DIR=${HUB_DIR}"
-
+# sync fork w/upstream and then push to the fork b/c sometimes a PR will fail to be auto-merged, which we think is
+# caused by an out-of-sync fork
+slack_message "updating forked HUB_DIR=${HUB_DIR}"
 cd "${HUB_DIR}"
 git fetch upstream # pull down the latest source from original repo
 git checkout master
 git merge upstream/master # update fork from original repo to keep up with their changes
+git push origin master    # sync with fork
 
 # update covidEnsembles repo
 cd ${ENSEMBLES_DIR}

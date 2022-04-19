@@ -77,17 +77,14 @@ if [ $? -eq 0 ]; then
   else
     slack_message "PDF_DIR success: PDF_DIR=${PDF_DIR}"
 
-    # create and push branch with new CSV file. we could first sync w/upstream and then push to the fork, but this is
-    # unnecessary for this script because `make all` gets the data it needs from the net and not the ${HUB_DIR}. note
-    # that we may later decide to go ahead and sync in case other scripts that use this volume (at /data) need
-    # up-to-date data, which is why we've kept the commands but commented them out. also note that we do not pull
-    # changes from the fork because we frankly don't need them; all we're concerned with is adding new files to a new
-    # branch and pushing them.
+    # create and push branch with new CSV file. we first sync fork w/upstream and then push to the fork b/c sometimes a
+    # PR will fail to be auto-merged, which we think is caused by an out-of-sync fork
+    slack_message "updating forked HUB_DIR=${HUB_DIR}"
     cd "${HUB_DIR}"
-    # git fetch upstream                         # pull down the latest source from original repo
+    git fetch upstream # pull down the latest source from original repo
     git checkout master
-    # git merge upstream/master                  # update fork from original repo to keep up with their changes
-    # git push origin master                     # sync with fork
+    git merge upstream/master # update fork from original repo to keep up with their changes
+    git push origin master    # sync with fork
 
     CSV_DIR="${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline"
     TODAY_DATE=$(date +'%Y-%m-%d') # e.g., 2022-02-17
