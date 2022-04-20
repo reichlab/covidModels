@@ -67,6 +67,7 @@ if [ $? -eq 0 ]; then
 else
   # script had errors. upload just the log file
   slack_message "render_reports.R failed"
+  slack_upload ${OUT_FILE}
 fi
 
 #
@@ -74,5 +75,4 @@ fi
 #
 
 slack_message "done. shutting down"
-slack_upload ${OUT_FILE}
 sudo shutdown now -h
