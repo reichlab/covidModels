@@ -20,12 +20,16 @@ source $(dirname "$0")/slack.sh
 slack_message "starting"
 
 #
-# update covid-hosp-models and covidData repos, sync covid19-forecast-hub fork with upstream, delete old branch
+# update covid-hosp-models, flu-hosp-models-2021-2022, and covidData repos, sync covid19-forecast-hub fork with
+# upstream, delete old branch
 #
 
 COVID_HOSP_MODELS_DIR="/data/covid-hosp-models"
+FLU_HOSP_MODELS_2021_2022_DIR="/data/flu-hosp-models-2021-2022"
 WEEKLY_SUBMISSION_DIR=${COVID_HOSP_MODELS_DIR}/weekly-submission
+
 git -C ${COVID_HOSP_MODELS_DIR} pull
+git -C ${FLU_HOSP_MODELS_2021_2022_DIR} pull
 
 # update covidData library
 slack_message "updating covidData library"
