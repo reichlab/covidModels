@@ -106,9 +106,6 @@ if [ $? -eq 0 ]; then
 
     # done with branch. upload PDFs, and optionally zipped CSV file (if push failed)
     git checkout master
-    slack_message "uploading log, PDFs, [CSVs]"
-    slack_upload ${OUT_FILE}
-
     for PDF_FILE in ${PDF_DIR}/*.pdf; do
       slack_upload ${PDF_FILE}
     done
