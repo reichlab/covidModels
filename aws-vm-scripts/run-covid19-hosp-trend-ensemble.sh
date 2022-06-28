@@ -54,11 +54,12 @@ git branch --delete --force ${BRANCH_NAME} # delete local branch
 git push origin --delete ${BRANCH_NAME}    # delete remote branch
 
 #
-# run the models
+# run the model
 #
 
 slack_message "running Rscript"
 OUT_FILE=/tmp/run-covid19-hosp-trend-ensemble-out.txt
+echo -n >${OUT_FILE} # truncate
 cd ${COVID_HOSP_MODELS_DIR}
 Rscript R/baseline.R >>${OUT_FILE} 2>&1
 

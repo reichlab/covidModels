@@ -74,7 +74,7 @@ The instance's account is the default `ec2-user`, which is the owner of the EBS 
 
 
 # AWS Lambda function
-The Lambda function [start-baseline-instance](https://console.aws.amazon.com/lambda/home?region=us-east-1#/functions/start-baseline-instance?tab=code) (written in Python) starts the above EC2 instance, looking for the instance whose name is 'baseline model' to identify it. The function's execution role is [EC2RoleForBaselineScriptLambda](https://console.aws.amazon.com/iam/home#/roles/EC2RoleForBaselineScriptLambda?section=permissions), which has the [EC2DescribeStartStopWithLogs](https://console.aws.amazon.com/iam/home#/policies/arn:aws:iam::312560106906:policy/EC2DescribeStartStopWithLogs$jsonEditor) policy attached to it. That policy allows describing, starting, and stopping instances, and writing to logs.
+The Lambda function [runCovidWeekly](https://us-east-1.console.aws.amazon.com/lambda/home?region=us-east-1#/functions/runCovidWeekly?tab=code) (written in Python) starts the above EC2 instance, looking for the instance whose name is 'covid weekly' to identify it. The function's execution role is [EC2RoleForBaselineScriptLambda](https://console.aws.amazon.com/iam/home#/roles/EC2RoleForBaselineScriptLambda?section=permissions), which has the [EC2DescribeStartStopWithLogs](https://console.aws.amazon.com/iam/home#/policies/arn:aws:iam::312560106906:policy/EC2DescribeStartStopWithLogs$jsonEditor) policy attached to it. That policy allows describing, starting, and stopping instances, and writing to logs.
 
 
 # AWS EventBridge events
