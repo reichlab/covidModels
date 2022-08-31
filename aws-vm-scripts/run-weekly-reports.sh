@@ -52,15 +52,10 @@ if [ $? -eq 0 ]; then
   git push
 
   if [ $? -eq 0 ]; then
-    # update the web site by running the deploy GitHub Action - https://github.com/reichlab/covid19-forecast-hub/blob/master/.github/workflows/deploy-gh-pages.yml
-    slack_message "push OK, running deploy workflow"
-    cd ${HUB_WEB_DIR}
-    gh workflow run blank.yml
-    if [ $? -eq 0 ]; then
-      slack_message "deploy workflow started ok. please check the reports are up at: https://covid19forecasthub.org/reports/single_page.html and then send a message to #weekly-ensemble "
-    else
-      slack_message "deploy workflow failed"
-    fi
+    # update the web site by running deploy-covidhub-site.sh , disabling shutting down so this script can finish
+    slack_message "push OK, running deploy script"
+    export DONT_SHUTDOWN=true
+    source $(dirname "$0")/deploy-covidhub-site.sh
   else
     slack_message "push failed"
   fi
