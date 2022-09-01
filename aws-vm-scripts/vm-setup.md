@@ -237,3 +237,32 @@ done
   
 /data/covidModels/aws-vm-scripts/sandbox.sh  # should ask for personal access token first time
 ```
+
+
+# Install requirements for deploy-covidhub-site.sh
+
+The following installation steps were adapted for Amazon Linux 2 from the [covid19-forecast-hub-web README.md](https://github.com/reichlab/covid19-forecast-hub-web/blob/master/README.md). Steps are required for both Python and Ruby. Note that the Ruby steps on Amazon Linux 2 were problemmatic and ultimately required using `sudo`, which is generally not recommended. This could cause problems with future scripts that require different gems and/or gem versions.
+
+
+## python
+```bash
+cd /data/covid19-forecast-hub-web
+emacs Pipfile             # change: `python_version = "3.8"` -> `python_version = "3.7"`
+sudo pip3 install pipenv  # ignore: WARNING: Running pip install with root privileges is generally not a good idea
+pipenv shell              # should see: Successfully created virtual environment!
+pipenv install            # "": Success!
+```
+
+
+## ruby
+```bash
+cd /data/covid19-forecast-hub-web
+emacs Gemfile.lock  # change: `ffi (1.9.25)` -> `ffi (1.15.5)`
+sudo amazon-linux-extras install ruby2.6 -y
+sudo yum install ruby-devel -y
+gem install jekyll
+gem install bundler -v 1.16.6
+bundle install
+sudo gem pristine http_parser.rb --version 0.6.0
+git restore Gemfile.lock
+```
