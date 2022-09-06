@@ -257,12 +257,12 @@ pipenv install            # "": Success!
 ## ruby
 ```bash
 cd /data/covid19-forecast-hub-web
-emacs Gemfile.lock  # change: `ffi (1.9.25)` -> `ffi (1.15.5)`
 sudo amazon-linux-extras install ruby2.6 -y
 sudo yum install ruby-devel -y
 gem install jekyll
 gem install bundler -v 1.16.6
+sudo gem pristine ffi --version 1.9.25
+sudo gem pristine http_parser.rb --version 0.6.0
 bundle install
 sudo gem pristine http_parser.rb --version 0.6.0
-git restore Gemfile.lock
 ```
