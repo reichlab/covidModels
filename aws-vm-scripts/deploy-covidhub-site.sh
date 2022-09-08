@@ -1,9 +1,8 @@
 #!/bin/bash
 
 #
-# A wrapper script to deploy the weekly reports, either those created by run-weekly-reports.sh, or to deploy manually-
-# created other chanages. messaging slack with progress and results. This script checks if the variable `DONT_SHUTDOWN`
-# is set to determine whether to `shutdown now` (if set) or not (if not set).
+# A script that deploys the weekly reports, either those created by run-weekly-reports.sh, or to deploy manually-
+# created other changes. messaging slack with progress and results.
 # - run as `ec2-user`, not root
 #
 
@@ -28,15 +27,34 @@ cd ${HUB_WEB_DIR}
 git switch master
 git pull
 
-# run python scripts to generate files and then commit changes to the repo
+# run python scripts to generate community and reports files and then commit changes to the repo. we only run the latter
+# if necessary, i.e., if the reports/reports.json output file is up-to-date with reports/*-weekly-report.html files.
+# check_reports_deployment.py checks this for us, returning 'True' if up-to-date, and 'False' if not
+
 slack_message "Updating community data"
 pipenv run python3 update-community.py # _data/community.yml
 
-slack_message "Updating reports data"
-pipenv run python3 update-reports.py # reports/reports.json , eval-reports/reports.json
+git diff --name-only _data/community.yml # 0 if modified, 128 if not
+if [ $? -eq 0 ]; then
+  slack_message "Community file updated OK"
+  git add _data/community.yml
+  git commit -m "update community"
+else
+  slack_message "Community file not updated"
+fi
 
-git add _data/community.yml eval-reports/reports.json reports/reports.json
-git commit -m "update community and report data"
+IS_REPORTS_UP_TO_DATE=$(pipenv run python3 check_reports_deployment.py)
+if [ ${IS_REPORTS_UP_TO_DATE} = "True" ]; then
+  slack_message "Reports already up-to-date. Skipping updating reports data."
+else
+  slack_message "Reports not up-to-date. Updating reports data."
+  pipenv run python3 update-reports.py # reports/reports.json , eval-reports/reports.json
+
+  slack_message "Committing reports data"
+  git add eval-reports/reports.json reports/reports.json
+  git commit -m "update report data"
+fi
+
 git push
 
 # remove old site and fetch clean repo. might be useful for a local build, likely not impacting CI Actions
@@ -46,10 +64,18 @@ rm -rf ./docs
 slack_message "Building site"
 bundle exec jekyll build -d docs
 
+if [ $? -eq 0 ]; then
+  slack_message "Site build OK"
+else
+  slack_message "Site built failed"
+  do_shutdown
+fi
+
 # switch to netlify branch, bringing along untracked "docs" directory, then push to github to update the web site via
 # netlify CI trigger
 slack_message "Pushing to GitHub production branch"
 git switch netlify
+git pull
 cp -r docs/* .
 rm -rf docs/
 rm -rf .sass-cache/
@@ -70,11 +96,4 @@ git switch master
 # done
 #
 
-if [ -z ${DONT_SHUTDOWN+x} ]; then
-  # DONT_SHUTDOWN is unset
-  slack_message "done. shutting down"
-  sudo shutdown now -h
-else
-  # DONT_SHUTDOWN is set
-  slack_message "done. NOT shutting down"
-fi
+do_shutdown

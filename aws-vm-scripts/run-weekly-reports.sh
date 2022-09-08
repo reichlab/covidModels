@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #
-# A wrapper script to run the weekly reports, messaging slack with progress and results.
+# A script that runs the weekly reports, messaging slack with progress and results.
 # - run as `ec2-user`, not root
 #
 
@@ -52,10 +52,9 @@ if [ $? -eq 0 ]; then
   git push
 
   if [ $? -eq 0 ]; then
-    # update the web site by running deploy-covidhub-site.sh , disabling shutting down so this script can finish
-    slack_message "push OK, running deploy script"
-    export DONT_SHUTDOWN=true
-    source $(dirname "$0")/deploy-covidhub-site.sh
+    # at this point the web site needs to be updated by running deploy-covidhub-site.sh, which is handled elsewhere. the
+    # helper script covid19-forecast-hub-web/check_reports_deployment.py should now return False
+    slack_message "push OK"
   else
     slack_message "push failed"
   fi
@@ -66,8 +65,7 @@ else
 fi
 
 #
-# done!
+# done
 #
 
-slack_message "done. shutting down"
-sudo shutdown now -h
+do_shutdown

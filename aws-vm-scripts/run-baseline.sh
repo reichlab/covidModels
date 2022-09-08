@@ -129,5 +129,4 @@ fi
 # done!
 #
 
-slack_message "done. shutting down"
-sudo shutdown now -h
+do_shutdown
