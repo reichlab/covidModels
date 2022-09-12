@@ -54,5 +54,4 @@ git push
 slack_message "push done. The updated file will be at https://covid19forecasthub.org/$(basename ${OUT_FILE}) after the next web site deploy is run."
 
 # done
-slack_message "done. shutting down"
-sudo shutdown now -h
+do_shutdown
