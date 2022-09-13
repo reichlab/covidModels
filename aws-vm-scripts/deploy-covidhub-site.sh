@@ -43,10 +43,10 @@ else
   slack_message "Community file not updated"
 fi
 
-IS_REPORTS_UP_TO_DATE=$(pipenv run python3 check_reports_deployment.py)
+IS_REPORTS_UP_TO_DATE=$(pipenv run python3 check_reports_deployment.py "${HUB_WEB_DIR}/reports" "${HUB_WEB_DIR}/reports/reports.json")
 if [ ${IS_REPORTS_UP_TO_DATE} = "True" ]; then
   slack_message "Reports already up-to-date. Skipping updating reports data."
-else
+else  # "False"
   slack_message "Reports not up-to-date. Updating reports data."
   pipenv run python3 update-reports.py # reports/reports.json , eval-reports/reports.json
 
