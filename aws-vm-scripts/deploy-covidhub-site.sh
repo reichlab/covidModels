@@ -14,6 +14,9 @@ set +o allexport
 # load slack functions - per https://stackoverflow.com/questions/10822790/can-i-call-a-function-of-a-shell-script-from-another-shell-script/42101141#42101141
 source $(dirname "$0")/slack.sh
 
+# make `pipenv` and `bundle` available (respectively)
+PATH=$PATH:~/.local/bin:~/bin
+
 #
 # start
 #
@@ -46,7 +49,7 @@ fi
 IS_REPORTS_UP_TO_DATE=$(pipenv run python3 check_reports_deployment.py "${HUB_WEB_DIR}/reports" "${HUB_WEB_DIR}/reports/reports.json")
 if [ ${IS_REPORTS_UP_TO_DATE} = "True" ]; then
   slack_message "Reports already up-to-date. Skipping updating reports data."
-else  # "False"
+else # "False"
   slack_message "Reports not up-to-date. Updating reports data."
   pipenv run python3 update-reports.py # reports/reports.json , eval-reports/reports.json
 
