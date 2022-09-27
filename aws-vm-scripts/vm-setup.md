@@ -195,8 +195,8 @@ install.packages(c('devtools', 'crosstalk', 'doParallel', 'DT', 'foreach', 'html
 ```
 
 NOTE: For some packages, specific version sare required. Here are the ones I know of:
-- `plotly`: 4.9.4.1
-- `rmarkdown`: 2.11
+- `plotly`: 4.9.4.1 needed for weekly reports due to [stray arrow appears in county level plot #5274](https://github.com/reichlab/covid19-forecast-hub/issues/5274)
+- `rmarkdown`: 2.11 needed for weekly reports due to 2.16 requiring upgrade of pandoc to 2.0+, but VM only has 1.12.3.1
 
 
 # Install R packages via GitHub
