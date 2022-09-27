@@ -1,4 +1,4 @@
-Here are the commands I ended up with that configured the instance for running the weekly scripts. I did not run them exactly in this order because it took a lot of trial and error to get a successful setup. Still, I'm putting them here for reference, and for a possible starting point for future VM tasks.
+Here are the commands I ended up with that configured the instance for running the weekly scripts. I did not run them exactly in this order because it took a lot of trial and error to get a successful setup, and it feels fragile (specific versions, etc.) Still, I'm putting them here for reference, and for a possible starting point for future VM tasks.
 
 
 # User
@@ -65,7 +65,7 @@ We decided the pre-installed version (3.7.10) is ok, so no install is necessary.
 `python3 --version`
 Python 3.7.10
 
-```python
+```bash
 pip3 install pandas
 pip3 install requests
 ```
@@ -179,7 +179,7 @@ NB: Install these as `ec2-user` within the `R` interpreter, rather than on the c
     ‘~/R/x86_64-koji-linux-gnu-library/4.0’
     to install packages into? (yes/No/cancel) YES
 
-You should then have this results, where #1 is the `ec2-user` home R library location:
+You should then have these results, where #1 is the `ec2-user` home R library location:
 
 ```R
 .libPaths()
@@ -193,6 +193,10 @@ Here then are the packages to install from within the `R` interpreter as `ec2-us
 ```R
 install.packages(c('devtools', 'crosstalk', 'doParallel', 'DT', 'foreach', 'htmltools', 'lubridate', 'parallel', 'plotly', 'scico', 'tidyverse', 'zoo', 'dplyr', 'tibble', 'tidyr', 'MMWRweek', 'purrr', 'ggplot2', 'magrittr', 'Matrix', 'NlcOptim', 'zeallot', 'googledrive', 'yaml', 'here', 'tictoc', 'furrr', 'matrixStats', 'ggpubr', 'ggforce', 'covidcast', 'car', 'fabletools', 'feasts', 'rvest'), repos='http://cran.rstudio.com/')
 ```
+
+NOTE: For some packages, specific version sare required. Here are the ones I know of:
+- `plotly`: 4.9.4.1
+- `rmarkdown`: 2.11
 
 
 # Install R packages via GitHub
