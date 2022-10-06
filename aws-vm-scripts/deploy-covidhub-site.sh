@@ -30,34 +30,19 @@ cd ${HUB_WEB_DIR}
 git switch master
 git pull
 
-# run python scripts to generate community and reports files and then commit changes to the repo. we only run the latter
-# if necessary, i.e., if the reports/reports.json output file is up-to-date with reports/*-weekly-report.html files.
-# check_reports_deployment.py checks this for us, returning 'True' if up-to-date, and 'False' if not
+# run python scripts to generate community and reports files and then commit changes to the repo
 
 slack_message "Updating community data"
 pipenv run python3 update-community.py # _data/community.yml
+git add _data/community.yml
+git commit -m "update community"
 
-git diff --name-only _data/community.yml # 0 if modified, 128 if not
-if [ $? -eq 0 ]; then
-  slack_message "Community file updated OK"
-  git add _data/community.yml
-  git commit -m "update community"
-else
-  slack_message "Community file not updated"
-fi
+slack_message "Updating reports data."
+pipenv run python3 update-reports.py # reports/reports.json , eval-reports/reports.json
+git add eval-reports/reports.json reports/reports.json
+git commit -m "update report data"
 
-IS_REPORTS_UP_TO_DATE=$(pipenv run python3 check_reports_deployment.py "${HUB_WEB_DIR}/reports" "${HUB_WEB_DIR}/reports/reports.json")
-if [ ${IS_REPORTS_UP_TO_DATE} = "True" ]; then
-  slack_message "Reports already up-to-date. Skipping updating reports data."
-else # "False"
-  slack_message "Reports not up-to-date. Updating reports data."
-  pipenv run python3 update-reports.py # reports/reports.json , eval-reports/reports.json
-
-  slack_message "Committing reports data"
-  git add eval-reports/reports.json reports/reports.json
-  git commit -m "update report data"
-fi
-
+slack_message "Pushing any changes."
 git push
 
 # remove old site and fetch clean repo. might be useful for a local build, likely not impacting CI Actions
