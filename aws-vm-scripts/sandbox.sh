@@ -17,6 +17,7 @@ source $(dirname "$0")/slack.sh
 # start
 slack_message "started. editing file"
 cd /data/sandbox/
+git pull
 echo "$(date)" >>README.md
 git add .
 git commit -m "update"
