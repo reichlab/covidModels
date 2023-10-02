@@ -61,8 +61,7 @@ for (forecast_week_end_date in forecast_week_end_dates) {
           as_of = as.character(forecast_week_end_date + 2),
           spatial_resolution = c('state', 'national'),
           temporal_resolution = 'daily',
-          measure = measure,
-          source = "covidcast") %>%
+          measure = measure) %>%
           dplyr::filter(location %in% required_locations$location) %>%
           dplyr::arrange(location, date)
         horizon <- 28L
