@@ -2,7 +2,8 @@
 
 #
 # This is a small helper script that processes the environment variables documented in README.md, saving the results
-# into the corresponding files under ${HOME}.
+# into the corresponding files under ${HOME}. NB: this script OVERWRITES the file `~/.git-credentials` and the git
+# global variables `user.name`, `user.email`, and `credential.helper` (stored in `~/.gitconfig`).
 #
 
 # write incoming environment variables into three files. see README.md for details
@@ -15,21 +16,10 @@ else
   echo "found all required environment variables"
 fi
 
-# file 1/3: ~/.env
-ENV_FILE_NAME="${HOME}/.env"
-echo "SLACK_API_TOKEN=${SLACK_API_TOKEN}" >"${ENV_FILE_NAME}" # NB: overwrites!
-echo "CHANNEL_ID=${CHANNEL_ID}" >>"${ENV_FILE_NAME}"
-echo "GH_TOKEN=${GH_TOKEN}" >>"${ENV_FILE_NAME}"
-
-# file 2/3: ~/.git-credentials
+# file 1/2: ~/.git-credentials
 echo "${GIT_CREDENTIALS}" >"${HOME}/.git-credentials"
 
-# file 3/3: ~/.gitconfig
+# file 2/2: ~/.gitconfig
 git config --global user.name "${GIT_USER_NAME}"
 git config --global user.email "${GIT_USER_EMAIL}"
 git config --global credential.helper store
-
-# load environment variables - per https://stackoverflow.com/questions/19331497/set-environment-variables-from-file-of-key-value-pairs
-set -o allexport
-source "${ENV_FILE_NAME}"
-set +o allexport

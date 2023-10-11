@@ -2,11 +2,15 @@
 
 #
 # A wrapper script to run the baseline model, messaging slack with progress and results.
-# - run as `ec2-user`, not root
+#
+# Environment variables (see README.md for details):
+# - `SLACK_API_TOKEN`, `CHANNEL_ID` (required): used by slack.sh
+# - `GH_TOKEN`, `GIT_USER_NAME`, `GIT_USER_EMAIL`, `GIT_CREDENTIALS` (required): used by load-env-vars.sh
+# - `DRY_RUN` (optional): when set (to anything), stops git commit actions from happening (default is to do commits)
 #
 
 #
-# load environment variables and then slack functions. NB: requires SLACK_API_TOKEN and CHANNEL_ID environment variables
+# load environment variables and then slack functions
 #
 
 echo "sourcing: load-env-vars.sh"
@@ -14,12 +18,6 @@ source "$(dirname "$0")/load-env-vars.sh"
 
 echo "sourcing: slack.sh"
 source "$(dirname "$0")/../aws-vm-scripts/slack.sh"
-
-echo "calling slack_message"
-slack_message "test from Dockerized run-baseline.sh"
-
-echo "exiting"
-exit # todo xx
 
 #
 # start
@@ -59,82 +57,102 @@ git -C ${HUB_DIR} push origin --delete ${BRANCH_NAME}    # delete remote branch
 
 slack_message "running make"
 make -C "${COVID_MODELS_DIR}/weekly-submission" all >${OUT_FILE} 2>&1
+MAKE_RESULT=$?
 
-#
-# share results
-#
-
-if [ $? -eq 0 ]; then
-  # make had no errors. add new csv file to new branch and then upload log file and pdf files
-  slack_message "make OK; collecting PDF and CSV files"
-
-  # find the PDF folder created by make. it is named for Monday's date, which is also used PDF and CSV filenames, e.g.,
-  # make creates a file structure like so:
-  #   weekly-submission/COVIDhub-baseline-plots/2022-04-04
-  #   weekly-submission/COVIDhub-baseline-plots/2022-04-04/COVIDhub-baseline-2022-04-04-cases.pdf
-  #   weekly-submission/COVIDhub-baseline-plots/2022-04-04/COVIDhub-baseline-2022-04-04-deaths.pdf
-  #   weekly-submission/COVIDhub-baseline-plots/2022-04-04/COVIDhub-baseline-2022-04-04-hospitalizations.pdf
-  PDF_DIRS=$(find ${COVID_MODELS_DIR}/weekly-submission/COVIDhub-baseline-plots -maxdepth 1 -mindepth 1 -type d)
-  NUM_PDF_DIRS=0
-  for PDF_DIR in $PDF_DIRS; do
-    ((NUM_PDF_DIRS++))
-  done
-
-  if [ $NUM_PDF_DIRS -ne 1 ]; then
-    slack_message "PDF_DIR error: not exactly 1 PDF dir. PDF_DIRS=${PDF_DIRS}, NUM_PDF_DIRS=${NUM_PDF_DIRS}"
-  else
-    slack_message "PDF_DIR success: PDF_DIR=${PDF_DIR}"
-
-    # create and push branch with new CSV file. we first sync fork w/upstream and then push to the fork b/c sometimes a
-    # PR will fail to be auto-merged, which we think is caused by an out-of-sync fork
-    slack_message "updating forked HUB_DIR=${HUB_DIR}"
-    cd "${HUB_DIR}"
-    git fetch upstream # pull down the latest source from original repo
-    git checkout master
-    git merge upstream/master # update fork from original repo to keep up with their changes
-    git push origin master    # sync with fork
-
-    CSV_DIR="${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline"
-    TODAY_DATE=$(date +'%Y-%m-%d') # e.g., 2022-02-17
-    slack_message "creating branch and pushing. CSV_DIR=${CSV_DIR}"
-    git checkout -b ${BRANCH_NAME}
-    cp ${CSV_DIR}/*.csv ${HUB_DIR}/data-processed/COVIDhub-baseline
-    git add data-processed/COVIDhub-baseline/\*
-    git commit -m "baseline build, ${TODAY_DATE}"
-    git push -u origin ${BRANCH_NAME}
-    PUSH_RESULT=$?
-    PR_URL=$(gh pr create --title "${TODAY_DATE} baseline" --body "baseline, COVID19 Forecast Hub")
-
-    if [ $? -eq 0 ]; then
-      slack_message "PR OK. PR_URL=${PR_URL}"
-    else
-      slack_message "PR failed"
-      do_shutdown
-    fi
-
-    # done with branch. upload PDFs, and optionally zipped CSV file (if push failed)
-    git checkout master
-    for PDF_FILE in ${PDF_DIR}/*.pdf; do
-      slack_upload ${PDF_FILE}
-    done
-
-    if [ $PUSH_RESULT -ne 0 ]; then
-      for CSV_FILE in ${CSV_DIR}/*.csv; do
-        ZIP_CSV_FILE=/tmp/$(basename ${CSV_FILE}).zip
-        zip ${ZIP_CSV_FILE} ${CSV_FILE}
-        slack_upload ${ZIP_CSV_FILE}
-      done
-    fi
-
-  fi
-else
-  # make had errors. upload just the log file
+if [ ${MAKE_RESULT} -ne 0 ]; then
+  # make had errors
   slack_message "make failed"
   slack_upload ${OUT_FILE}
+  do_shutdown
+fi
+
+# make had no errors. find PDF and CSV files, add new csv file to new branch, and then upload log file and pdf files
+
+slack_message "make OK; collecting PDF and CSV files"
+CSV_DIR="${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline"
+
+# find the PDF folder created by make. it is named for Monday's date, which is also used PDF and CSV filenames, e.g.,
+# make creates a file structure like so:
+#   weekly-submission/COVIDhub-baseline-plots/2022-04-04
+#   weekly-submission/COVIDhub-baseline-plots/2022-04-04/COVIDhub-baseline-2022-04-04-cases.pdf
+#   weekly-submission/COVIDhub-baseline-plots/2022-04-04/COVIDhub-baseline-2022-04-04-deaths.pdf
+#   weekly-submission/COVIDhub-baseline-plots/2022-04-04/COVIDhub-baseline-2022-04-04-hospitalizations.pdf
+PDF_DIRS=$(find ${COVID_MODELS_DIR}/weekly-submission/COVIDhub-baseline-plots -maxdepth 1 -mindepth 1 -type d)
+NUM_PDF_DIRS=0
+for PDF_DIR in $PDF_DIRS; do
+  ((NUM_PDF_DIRS++))
+done
+
+if [ "$NUM_PDF_DIRS" -ne 1 ]; then
+  slack_message "PDF_DIR error: not exactly 1 PDF dir. PDF_DIRS=${PDF_DIRS}, NUM_PDF_DIRS=${NUM_PDF_DIRS}"
+  slack_upload ${OUT_FILE}
+  do_shutdown
+fi
+
+# found exactly one PDF_DIR
+slack_message "PDF_DIR success: PDF_DIR=${PDF_DIR}"
+
+if [ -z ${DRY_RUN+x} ]; then
+  PDF_FILES=$(find "${PDF_DIR}" -maxdepth 1 -mindepth 1 -type f)
+  CSV_FILES=$(find "${CSV_DIR}" -maxdepth 1 -mindepth 1 -type f)
+  slack_message "DRY_RUN set. PDF_FILES=${PDF_FILES}, CSV_FILES=${CSV_FILES}"
+  do_shutdown
 fi
 
 #
-# done!
+# todo xx just in case above fails
+#
+echo "oops! DRY_RUN='${DRY_RUN}'"
+do_shutdown
+#
+# xx
+#
+
+# continue: PDF_DIR success + non-DRY_RUN
+slack_message "PDF_DIR success: PDF_DIR=${PDF_DIR}"
+
+# create and push branch with new CSV file. we first sync fork w/upstream and then push to the fork b/c sometimes a
+# PR will fail to be auto-merged, which we think is caused by an out-of-sync fork
+slack_message "updating forked HUB_DIR=${HUB_DIR}"
+cd "${HUB_DIR}"
+git fetch upstream # pull down the latest source from original repo
+git checkout master
+git merge upstream/master # update fork from original repo to keep up with their changes
+git push origin master    # sync with fork
+
+TODAY_DATE=$(date +'%Y-%m-%d') # e.g., 2022-02-17
+slack_message "creating branch and pushing. CSV_DIR=${CSV_DIR}"
+git checkout -b ${BRANCH_NAME}
+cp ${CSV_DIR}/*.csv ${HUB_DIR}/data-processed/COVIDhub-baseline
+git add data-processed/COVIDhub-baseline/\*
+git commit -m "baseline build, ${TODAY_DATE}"
+git push -u origin ${BRANCH_NAME}
+PUSH_RESULT=$?
+PR_URL=$(gh pr create --title "${TODAY_DATE} baseline" --body "baseline, COVID19 Forecast Hub")
+
+if [ $? -eq 0 ]; then
+  slack_message "PR OK. PR_URL=${PR_URL}"
+else
+  slack_message "PR failed"
+  do_shutdown
+fi
+
+# done with branch. upload PDFs, and optionally zipped CSV file (if push failed)
+git checkout master
+for PDF_FILE in "${PDF_DIR}"/*.pdf; do
+  slack_upload "${PDF_FILE}"
+done
+
+if [ ${PUSH_RESULT} -ne 0 ]; then
+  for CSV_FILE in "${CSV_DIR}"/*.csv; do
+    ZIP_CSV_FILE=/tmp/$(basename "${CSV_FILE}").zip
+    zip "${ZIP_CSV_FILE}" "${CSV_FILE}"
+    slack_upload "${ZIP_CSV_FILE}"
+  done
+fi
+
+#
+# done
 #
 
 do_shutdown
