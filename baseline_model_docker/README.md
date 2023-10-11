@@ -6,13 +6,14 @@ Docs: TBD. For now, here's a summary from [baseline-model's README.md](https://g
 
 The app expects a volume (either a local Docker one or EFS) to be mounted at `/data` which contains all required GitHub repos: `covidModels`, `covidData`, and `covid19-forecast-hub`.
 
-Note: This project's `Dockerfile`s run the script version mounted under `/data/covidModels` , which means you need to update that repo after editing and pushing scripts for the changes to be picked up. For local development, you can use [docker cp](https://docs.docker.com/engine/reference/commandline/cp/) for a faster workflow. The following steps create a temp container that mounts the volume at `/data`, copy this entire repo to the volume, and then delete the temp container. NB: This will delete and replace the repo on the volume! (The `COPYFILE_DISABLE` variable is necessary only in Mac development to disable AppleDouble format "._*" files per [this post](https://superuser.com/questions/61185/why-do-i-get-files-like-foo-in-my-tarball-on-os-x). Otherwise, you'll get files in the volume's `config/` dir like `._.env` and `._.git-credentials`.)
+Note: This project's `Dockerfile`s run the script version mounted under `/data/covidModels` , which means you need to update that repo after editing and pushing scripts for the changes to be picked up. To explore the volume:
 
 ```bash
-docker create --name temp_container --mount type=volume,src=data_volume,target=/data ubuntu
-COPYFILE_DISABLE=1 tar -c -C "path-to-this-repo" | docker cp - temp_container:/data
-docker exec -it temp_container /bin/bash  # (optional) explore the volume from the command line
-docker rm temp_container
+# (optional) explore the volume from the command line via a temp container
+docker run --rm -it --name temp_container --mount type=volume,src=data_volume,target=/data ubuntu /bin/bash
+
+# if you need git installed:
+apt update ; apt install -y git
 ```
 
 # Environment variables

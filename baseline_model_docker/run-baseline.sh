@@ -63,7 +63,7 @@ if [ ${MAKE_RESULT} -ne 0 ]; then
   # make had errors
   slack_message "make failed"
   slack_upload ${OUT_FILE}
-  do_shutdown
+  exit 1
 fi
 
 # make had no errors. find PDF and CSV files, add new csv file to new branch, and then upload log file and pdf files
@@ -86,7 +86,7 @@ done
 if [ "$NUM_PDF_DIRS" -ne 1 ]; then
   slack_message "PDF_DIR error: not exactly 1 PDF dir. PDF_DIRS=${PDF_DIRS}, NUM_PDF_DIRS=${NUM_PDF_DIRS}"
   slack_upload ${OUT_FILE}
-  do_shutdown
+  exit 1
 fi
 
 # found exactly one PDF_DIR
@@ -96,23 +96,15 @@ if [ -z ${DRY_RUN+x} ]; then
   PDF_FILES=$(find "${PDF_DIR}" -maxdepth 1 -mindepth 1 -type f)
   CSV_FILES=$(find "${CSV_DIR}" -maxdepth 1 -mindepth 1 -type f)
   slack_message "DRY_RUN set. PDF_FILES=${PDF_FILES}, CSV_FILES=${CSV_FILES}"
-  do_shutdown
+  exit 0
 fi
 
-#
-# todo xx just in case above fails
-#
-echo "oops! DRY_RUN='${DRY_RUN}'"
-do_shutdown
-#
-# xx
-#
+# todo temp xx exit in if DRY_RUN not set or if above fails
+echo "temp xx skipped past DRY_RUN='${DRY_RUN}'"
+exit 1
 
-# continue: PDF_DIR success + non-DRY_RUN
-slack_message "PDF_DIR success: PDF_DIR=${PDF_DIR}"
-
-# create and push branch with new CSV file. we first sync fork w/upstream and then push to the fork b/c sometimes a
-# PR will fail to be auto-merged, which we think is caused by an out-of-sync fork
+# PDF_DIR success + non-DRY_RUN: create and push branch with new CSV file. we first sync fork w/upstream and then push
+# to the fork b/c sometimes a PR will fail to be auto-merged, which we think is caused by an out-of-sync fork
 slack_message "updating forked HUB_DIR=${HUB_DIR}"
 cd "${HUB_DIR}"
 git fetch upstream # pull down the latest source from original repo
@@ -134,7 +126,7 @@ if [ $? -eq 0 ]; then
   slack_message "PR OK. PR_URL=${PR_URL}"
 else
   slack_message "PR failed"
-  do_shutdown
+  exit 1
 fi
 
 # done with branch. upload PDFs, and optionally zipped CSV file (if push failed)
@@ -155,4 +147,4 @@ fi
 # done
 #
 
-do_shutdown
+exit 1
