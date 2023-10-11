@@ -92,7 +92,7 @@ fi
 # found exactly one PDF_DIR
 slack_message "PDF_DIR success: PDF_DIR=${PDF_DIR}"
 
-if [ -z ${DRY_RUN+x} ]; then
+if [ -n "${DRY_RUN+x}" ]; then
   PDF_FILES=$(find "${PDF_DIR}" -maxdepth 1 -mindepth 1 -type f)
   CSV_FILES=$(find "${CSV_DIR}" -maxdepth 1 -mindepth 1 -type f)
   slack_message "DRY_RUN set. PDF_FILES=${PDF_FILES}, CSV_FILES=${CSV_FILES}"
