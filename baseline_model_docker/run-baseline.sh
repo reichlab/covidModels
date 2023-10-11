@@ -97,11 +97,12 @@ if [ -z ${DRY_RUN+x} ]; then
   CSV_FILES=$(find "${CSV_DIR}" -maxdepth 1 -mindepth 1 -type f)
   slack_message "DRY_RUN set. PDF_FILES=${PDF_FILES}, CSV_FILES=${CSV_FILES}"
   exit 0
+else # todo xx remove
+  PDF_FILES=$(find "${PDF_DIR}" -maxdepth 1 -mindepth 1 -type f)
+  CSV_FILES=$(find "${CSV_DIR}" -maxdepth 1 -mindepth 1 -type f)
+  slack_message "temp xx skipped past DRY_RUN='${DRY_RUN}'. PDF_FILES=${PDF_FILES}, CSV_FILES=${CSV_FILES}"
+  exit 1
 fi
-
-# todo temp xx exit in if DRY_RUN not set or if above fails
-echo "temp xx skipped past DRY_RUN='${DRY_RUN}'"
-exit 1
 
 # PDF_DIR success + non-DRY_RUN: create and push branch with new CSV file. we first sync fork w/upstream and then push
 # to the fork b/c sometimes a PR will fail to be auto-merged, which we think is caused by an out-of-sync fork
