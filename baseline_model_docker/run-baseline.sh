@@ -23,7 +23,7 @@ source "$(dirname "$0")/../aws-vm-scripts/slack.sh"
 # start
 #
 
-slack_message "starting"
+slack_message "starting. id='$(id -u -n)', HOME='${HOME}', PWD='${PWD}'"
 
 # update covidModels and covidData repos (the covid19-forecast-hub fork is updated post-make)
 COVID_MODELS_DIR="/data/covidModels"
@@ -95,13 +95,8 @@ slack_message "PDF_DIR success: PDF_DIR=${PDF_DIR}"
 if [ -n "${DRY_RUN+x}" ]; then
   PDF_FILES=$(find "${PDF_DIR}" -maxdepth 1 -mindepth 1 -type f)
   CSV_FILES=$(find "${CSV_DIR}" -maxdepth 1 -mindepth 1 -type f)
-  slack_message "DRY_RUN set. PDF_FILES=${PDF_FILES}, CSV_FILES=${CSV_FILES}"
+  slack_message "DRY_RUN set, exiting. PDF_FILES=${PDF_FILES}, CSV_FILES=${CSV_FILES}"
   exit 0
-else # todo xx remove
-  PDF_FILES=$(find "${PDF_DIR}" -maxdepth 1 -mindepth 1 -type f)
-  CSV_FILES=$(find "${CSV_DIR}" -maxdepth 1 -mindepth 1 -type f)
-  slack_message "temp xx skipped past DRY_RUN='${DRY_RUN}'. PDF_FILES=${PDF_FILES}, CSV_FILES=${CSV_FILES}"
-  exit 1
 fi
 
 # PDF_DIR success + non-DRY_RUN: create and push branch with new CSV file. we first sync fork w/upstream and then push
