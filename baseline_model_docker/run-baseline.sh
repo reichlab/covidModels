@@ -143,4 +143,5 @@ fi
 # done
 #
 
+slack_message "done"
 exit 0  # success
