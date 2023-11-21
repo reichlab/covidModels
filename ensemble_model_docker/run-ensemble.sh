@@ -25,11 +25,6 @@ source "$(dirname "$0")/../aws-vm-scripts/slack.sh"
 
 slack_message "starting. id='$(id -u -n)', HOME='${HOME}', PWD='${PWD}'"
 
-# update covidModels repo
-COVID_MODELS_DIR="/data/covidModels"
-cd "${COVID_MODELS_DIR}"
-git pull
-
 ENSEMBLES_DIR="/data/covidEnsembles"
 WEEKLY_ENSEMBLE_DIR=${ENSEMBLES_DIR}/code/application/weekly-ensemble
 
@@ -104,7 +99,7 @@ Rscript plot_losses.R >>${OUT_FILE} 2>&1
 # upload reports
 #
 
-slack_message "app PRs succeeded; uploading reports"
+slack_message "collecting and uploading reports"
 
 # to find reports we first need the Monday date that the Rscript scripts used when creating files and dirs. we do so
 # indirectly by looking for the file loss_plot_${TODAY_DATE}.pdf and then extracting the YYYY-MM-DD date from it. there
@@ -131,18 +126,14 @@ else
   done
 fi
 
+#
 # handle DRY_RUN
+#
+
 if [ -n "${DRY_RUN+x}" ]; then
   slack_message "DRY_RUN set, exiting"
   exit 0 # success
 fi
-
-#
-# todo DRY_RUN failsafe
-#
-
-slack_message "oops: passed DRY_RUN!"
-exit 1 # fail
 
 #
 # create PRs
