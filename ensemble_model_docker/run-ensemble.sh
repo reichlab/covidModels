@@ -25,32 +25,12 @@ source "$(dirname "$0")/../aws-vm-scripts/slack.sh"
 
 slack_message "starting. id='$(id -u -n)', HOME='${HOME}', PWD='${PWD}'"
 
+TODAY_DATE=$(date +'%Y-%m-%d') # e.g., 2022-02-17
+OUT_FILE=/tmp/run-ensemble-out.txt
+echo -n >${OUT_FILE} # truncate
+
 ENSEMBLES_DIR="/data/covidEnsembles"
 WEEKLY_ENSEMBLE_DIR=${ENSEMBLES_DIR}/code/application/weekly-ensemble
-
-slack_message "deleting old files"
-rm -rf ${WEEKLY_ENSEMBLE_DIR}/forecasts/
-rm -rf ${WEEKLY_ENSEMBLE_DIR}/plots/
-rm -f ${WEEKLY_ENSEMBLE_DIR}/thetas-*
-
-slack_message "deleting old branches"
-HUB_DIR="/data/covid19-forecast-hub" # a fork
-cd "${HUB_DIR}"
-git checkout master
-BRANCHES="primary trained 4wk"
-for BRANCH in ${BRANCHES}; do
-  git branch --delete --force ${BRANCH} # delete local branch
-  git push origin --delete ${BRANCH}    # delete remote branch
-done
-
-# sync fork w/upstream and then push to the fork b/c sometimes a PR will fail to be auto-merged, which we think is
-# caused by an out-of-sync fork
-slack_message "updating forked HUB_DIR=${HUB_DIR}"
-cd "${HUB_DIR}"
-git fetch upstream # pull down the latest source from original repo
-git checkout master
-git merge upstream/master # update fork from original repo to keep up with their changes
-git push origin master    # sync with fork
 
 # update covidEnsembles repo
 cd ${ENSEMBLES_DIR}
@@ -62,19 +42,48 @@ COVID_DATA_DIR="/data/covidData"
 git -C ${COVID_DATA_DIR} pull
 make -C ${COVID_DATA_DIR}/code/data-processing all
 
-# tag build inputs
-TODAY_DATE=$(date +'%Y-%m-%d') # e.g., 2022-02-17
-OUT_FILE=/tmp/run-ensemble-out.txt
-echo -n >${OUT_FILE} # truncate
+# delete old files
+slack_message "deleting old files"
+rm -rf ${WEEKLY_ENSEMBLE_DIR}/forecasts/
+rm -rf ${WEEKLY_ENSEMBLE_DIR}/plots/
+rm -f ${WEEKLY_ENSEMBLE_DIR}/thetas-*
 
-slack_message "tagging inputs"
-git -C ${HUB_DIR} tag -a ${TODAY_DATE}-COVIDhub-ensemble -m "${TODAY_DATE}-COVIDhub-ensemble build inputs"
-git -C ${HUB_DIR} push origin ${TODAY_DATE}-COVIDhub-ensemble
-git -C ${HUB_DIR} push --tags origin
-git -C ${HUB_DIR} push --tags upstream
+# delete old branches, sync w/upstream, and tag build inputs if not DRY_RUN
+if [ -z "${DRY_RUN+x}" ]; then
+
+  slack_message "todo xx DRY_RUN debug 1 caught"
+  exit 1 # fail
+
+  # delete old branches
+  slack_message "deleting old branches"
+  HUB_DIR="/data/covid19-forecast-hub" # a fork
+  cd "${HUB_DIR}"
+  git checkout master
+  BRANCHES="primary trained 4wk"
+  for BRANCH in ${BRANCHES}; do
+    git branch --delete --force ${BRANCH} # delete local branch
+    git push origin --delete ${BRANCH}    # delete remote branch
+  done
+
+  # sync fork w/upstream and then push to the fork b/c sometimes a PR will fail to be auto-merged, which we think is
+  # caused by an out-of-sync fork
+  slack_message "updating forked HUB_DIR=${HUB_DIR}"
+  cd "${HUB_DIR}"
+  git fetch upstream # pull down the latest source from original repo
+  git checkout master
+  git merge upstream/master # update fork from original repo to keep up with their changes
+  git push origin master    # sync with fork
+
+  # tag build inputs
+  slack_message "tagging inputs"
+  git -C ${HUB_DIR} tag -a ${TODAY_DATE}-COVIDhub-ensemble -m "${TODAY_DATE}-COVIDhub-ensemble build inputs"
+  git -C ${HUB_DIR} push origin ${TODAY_DATE}-COVIDhub-ensemble
+  git -C ${HUB_DIR} push --tags origin
+  git -C ${HUB_DIR} push --tags upstream
+fi
 
 #
-# build the model via a series of six R scripts
+# build the model via a series of five R scripts
 #
 
 cd ${WEEKLY_ENSEMBLE_DIR}
@@ -127,7 +136,7 @@ else
 fi
 
 #
-# handle DRY_RUN
+# exit if DRY_RUN
 #
 
 if [ -n "${DRY_RUN+x}" ]; then
@@ -136,8 +145,11 @@ if [ -n "${DRY_RUN+x}" ]; then
 fi
 
 #
-# create PRs
+# create PRs if not DRY_RUN
 #
+
+slack_message "todo xx DRY_RUN debug 2 caught"
+exit 1 # fail
 
 cd ${WEEKLY_ENSEMBLE_DIR}
 
