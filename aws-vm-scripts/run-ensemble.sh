@@ -74,22 +74,19 @@ git -C ${HUB_DIR} push --tags upstream
 cd ${WEEKLY_ENSEMBLE_DIR}
 mkdir -p plots/weight_reports
 
-slack_message "running Rscript 1/6: build_trained_ensembles.R"
+slack_message "running Rscript 1/5: build_trained_ensembles.R"
 Rscript build_trained_ensembles.R >>${OUT_FILE} 2>&1
 
-slack_message "running Rscript 2/6: build_4_week_ensembles.R"
+slack_message "running Rscript 2/5: build_4_week_ensembles.R"
 Rscript build_4_week_ensembles.R >>${OUT_FILE} 2>&1
 
-slack_message "running Rscript 3/6: build_ensembles.R"
+slack_message "running Rscript 3/5: build_ensembles.R"
 Rscript build_ensembles.R >>${OUT_FILE} 2>&1
 
-slack_message "running Rscript 4/6: plot_median_vs_trained_ensemble_forecasts.R"
-Rscript plot_median_vs_trained_ensemble_forecasts.R >>${OUT_FILE} 2>&1
-
-slack_message "running Rscript 5/6: fig-ensemble_weight.Rmd"
+slack_message "running Rscript 4/5: fig-ensemble_weight.Rmd"
 Rscript -e "rmarkdown::render('fig-ensemble_weight.Rmd', output_file = paste0('plots/weight_reports/fig-ensemble_weight_', Sys.Date(),'.html'))" >>${OUT_FILE} 2>&1
 
-slack_message "running Rscript 6/6: plot_losses.R"
+slack_message "running Rscript 5/5: plot_losses.R"
 Rscript plot_losses.R >>${OUT_FILE} 2>&1
 
 # primary_pr
