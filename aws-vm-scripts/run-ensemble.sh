@@ -171,7 +171,7 @@ else
 
   # upload the files
   cd ${WEEKLY_ENSEMBLE_DIR}/plots
-  UPLOAD_FILES="COVIDhub-4_week_ensemble/${MONDAY_DATE}/*.pdf COVIDhub-ensemble/${MONDAY_DATE}/*.pdf COVIDhub-trained_ensemble/${MONDAY_DATE}/*.pdf weight_reports/fig-ensemble_weight_${TODAY_DATE}.html loss_plot_${MONDAY_DATE}.pdf ${MONDAY_DATE}/*.pdf "
+  UPLOAD_FILES="COVIDhub-4_week_ensemble/${MONDAY_DATE}/*.pdf COVIDhub-ensemble/${MONDAY_DATE}/*.pdf COVIDhub-trained_ensemble/${MONDAY_DATE}/*.pdf weight_reports/fig-ensemble_weight_${TODAY_DATE}.html loss_plot_${MONDAY_DATE}.pdf"
   for UPLOAD_FILE in ${UPLOAD_FILES}; do
     slack_upload ${UPLOAD_FILE}
   done
