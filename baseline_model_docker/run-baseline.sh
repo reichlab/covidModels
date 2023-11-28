@@ -52,8 +52,10 @@ rm -f ${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline/*.csv
 slack_message "deleting old branch"
 HUB_DIR="/data/covid19-forecast-hub" # a fork
 BRANCH_NAME='baseline'
-git -C ${HUB_DIR} branch --delete --force ${BRANCH_NAME} # delete local branch
-git -C ${HUB_DIR} push origin --delete ${BRANCH_NAME}    # delete remote branch
+if [ -z "${DRY_RUN+x}" ]; then
+  git -C ${HUB_DIR} branch --delete --force ${BRANCH_NAME} # delete local branch
+  git -C ${HUB_DIR} push origin --delete ${BRANCH_NAME}    # delete remote branch
+fi
 
 slack_message "running make"
 make -C "${COVID_MODELS_DIR}/weekly-submission" all >${OUT_FILE} 2>&1
@@ -63,7 +65,7 @@ if [ ${MAKE_RESULT} -ne 0 ]; then
   # make had errors
   slack_message "make failed"
   slack_upload ${OUT_FILE}
-  exit 1  # fail
+  exit 1 # fail
 fi
 
 # make had no errors. find PDF and CSV files, add new csv file to new branch, and then upload log file and pdf files
@@ -86,7 +88,7 @@ done
 if [ "$NUM_PDF_DIRS" -ne 1 ]; then
   slack_message "PDF_DIR error: not exactly 1 PDF dir. PDF_DIRS=${PDF_DIRS}, NUM_PDF_DIRS=${NUM_PDF_DIRS}"
   slack_upload ${OUT_FILE}
-  exit 1  # fail
+  exit 1 # fail
 fi
 
 # found exactly one PDF_DIR
@@ -96,7 +98,7 @@ if [ -n "${DRY_RUN+x}" ]; then
   PDF_FILES=$(find "${PDF_DIR}" -maxdepth 1 -mindepth 1 -type f)
   CSV_FILES=$(find "${CSV_DIR}" -maxdepth 1 -mindepth 1 -type f)
   slack_message "DRY_RUN set, exiting. PDF_FILES=${PDF_FILES}, CSV_FILES=${CSV_FILES}"
-  exit 0  # success
+  exit 0 # success
 fi
 
 # PDF_DIR success + non-DRY_RUN: create and push branch with new CSV file. we first sync fork w/upstream and then push
@@ -122,7 +124,7 @@ if [ $? -eq 0 ]; then
   slack_message "PR OK. PR_URL=${PR_URL}"
 else
   slack_message "PR failed"
-  exit 1  # fail
+  exit 1 # fail
 fi
 
 # done with branch. upload PDFs, and optionally zipped CSV file (if push failed)
@@ -144,4 +146,4 @@ fi
 #
 
 slack_message "done"
-exit 0  # success
+exit 0 # success
