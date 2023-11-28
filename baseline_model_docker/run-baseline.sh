@@ -49,10 +49,10 @@ slack_message "deleting old files"
 find ${COVID_MODELS_DIR}/weekly-submission/COVIDhub-baseline-plots -maxdepth 1 -mindepth 1 -type d -exec rm -rf '{}' \;
 rm -f ${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline/*.csv
 
-slack_message "deleting old branch"
 HUB_DIR="/data/covid19-forecast-hub" # a fork
 BRANCH_NAME='baseline'
 if [ -z "${DRY_RUN+x}" ]; then
+  slack_message "deleting old branch"
   git -C ${HUB_DIR} branch --delete --force ${BRANCH_NAME} # delete local branch
   git -C ${HUB_DIR} push origin --delete ${BRANCH_NAME}    # delete remote branch
 fi
