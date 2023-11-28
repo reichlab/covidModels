@@ -14,10 +14,10 @@
 #
 
 echo "sourcing: load-env-vars.sh"
-source "$(dirname "$0")/../docker-scripts/load-env-vars.sh"
+source "/app/container-utils/scripts/load-env-vars.sh"
 
 echo "sourcing: slack.sh"
-source "$(dirname "$0")/../aws-vm-scripts/slack.sh"
+source "/app/container-utils/scripts/slack.sh"
 
 #
 # start
