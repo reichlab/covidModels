@@ -23,7 +23,7 @@ source "/app/container-utils/scripts/slack.sh"
 # start
 #
 
-slack_message "starting. id='$(id -u -n)', HOME='${HOME}', PWD='${PWD}'"
+slack_message "starting. id='$(id -u -n)', HOME='${HOME}', PWD='${PWD}', DRY_RUN='${DRY_RUN}'"
 
 # update covidModels and covidData repos (the covid19-forecast-hub fork is updated post-make)
 COVID_MODELS_DIR="/data/covidModels"
