@@ -1,15 +1,21 @@
-This directory contains files to support a containerized Docker version of the COVID-19 baseline model that can be run locally or via AWS ECS.
+This directory contains files to support a containerized Docker version of the COVID-19 baseline model that can be run locally or via [AWS ECS](https://aws.amazon.com/ecs/). Following is information needed to set up and run the image.
 
-Docs: TBD. For now, here's a summary from [container-demo-app's README.md](https://github.com/reichlab/container-demo-app/blob/main/README.md):
+# Environment variables
+
+The app uses the helper scripts in https://github.com/reichlab/container-utils/, which require the following environment variables: `SLACK_API_TOKEN`, `CHANNEL_ID`; `GH_TOKEN`; `GIT_USER_NAME`, `GIT_USER_EMAIL`; `GIT_CREDENTIALS`. Please that repo for details. Note that it's easiest and safest to save these in a `*.env` file and then pass that file to `docker run`.
 
 # `/data` dir
 
-The app expects a volume (either a local Docker one or EFS) to be mounted at `/data` which contains all required GitHub repos: `covidModels`, `covidData`, and `covid19-forecast-hub`.
+The app expects a volume (either a [local Docker one](https://docs.docker.com/storage/volumes/) or an [AWS EFS](https://aws.amazon.com/efs/) file system) to be mounted at `/data` and which contains all required GitHub repos:
+- https://github.com/reichlab/covidData
+- https://github.com/reichlab/covidModels
+- [this fork](https://github.com/reichlabmachine/covid19-forecast-hub) of https://github.com/reichlab/covid19-forecast-hub
 
-Notes:
-- To populate an AWS EFS, launch a temporary EC2 instance that mounts the EFS at `/data`, and then run the appropriate `git clone` commands. See [container-demo-app's ecs.md](https://github.com/reichlab/container-demo-app/blob/main/ecs.md) for details on how to do this.
-- At least on ECS, the user and group of the cloned repos must all match. Note that the default user when running a temporary EC2 instance to modify the EFS is `ec2-user` (not `root`, which is the user when the container runs). We currently recommend that you change freshly cloned repos to `root:root`, e.g., `sudo chown -R root:root /data/sandbox`. Otherwise, you'll see errors like this when doing `git pull`: _fatal: detected dubious ownership in repository at ..._ .
-- This project's `Dockerfile`s run the script version mounted under `/data/covidModels` , which means you need to update that repo after editing and pushing scripts for the changes to be picked up. To explore the volume:
+How that volume is populated (i.e., running `git clone` calls) depends on whether you're running locally or on ECS:
+
+## populate a local Docker volume
+
+Launch a temporary container that mounts the Docker volume at `/data`. E.g.,
 
 ```bash
 # create the empty volume
@@ -22,15 +28,15 @@ docker run --rm -it --name temp_container --mount type=volume,src=data_volume,ta
 apt update ; apt install -y git
 ```
 
-# Environment variables
+## populate an EFS volume
 
-The app requires six environment variables to be passed in: `SLACK_API_TOKEN`, `CHANNEL_ID`, `GH_TOKEN`, `GIT_USER_NAME`, `GIT_USER_EMAIL`, and `GIT_CREDENTIALS`
+Launch a temporary [AWS EC2](https://aws.amazon.com/ec2/) instance that mounts the EFS file system at `/data`. See https://github.com/reichlab/container-utils/blob/main/docs/ecs.md for details.
 
 # To build the image
 
 ```bash
-cd "path-to-this-repo/baseline_model_docker"
-docker build -t baseline-model:1.0 .
+cd "path-to-this-directory"
+docker build -t covid-baseline:1.0 .
 ```
 
 # To run the image locally
@@ -39,13 +45,17 @@ docker build -t baseline-model:1.0 .
 docker run --rm \
   --mount type=volume,src=data_volume,target=/data \
   --env-file /path-to-env-dir/.env \
-  baseline-model:1.0
+  covid-baseline:1.0
 ```
+
+# To run the image on AWS ECS
+
+See https://github.com/reichlab/container-utils/blob/main/docs/ecs.md for details.
 
 # To publish the image
 
 ```bash
 docker login -u "reichlab" docker.io
-docker tag baseline-model:1.0 reichlab/baseline-model:1.0
-docker push reichlab/baseline-model:1.0
+docker tag covid-baseline:1.0 reichlab/covid-baseline:1.0
+docker push reichlab/covid-baseline:1.0
 ```
