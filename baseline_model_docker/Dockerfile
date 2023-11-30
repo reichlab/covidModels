@@ -15,5 +15,5 @@ WORKDIR /app
 ADD "https://api.github.com/repos/reichlab/container-utils/commits?per_page=1" latest_commit
 RUN git clone https://github.com/reichlab/container-utils.git
 
-# NB: during developement we require this repo's `baseline_model_docker` branch to be checked out in the mounted volume
-CMD ["bash", "/data/covidModels/baseline_model_docker/run-baseline.sh"]
+COPY . .
+CMD ["bash", "./run-baseline.sh"]

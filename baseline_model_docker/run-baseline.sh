@@ -23,7 +23,7 @@ source "/app/container-utils/scripts/slack.sh"
 # start
 #
 
-slack_message "starting. id='$(id -u -n)', HOME='${HOME}', PWD='${PWD}', DRY_RUN='${DRY_RUN}'"
+slack_message "starting. id='$(id -u -n)', HOME='${HOME}', PWD='${PWD}', DRY_RUN='${DRY_RUN+x}'"
 
 # update covidModels and covidData repos (the covid19-forecast-hub fork is updated post-make)
 COVID_MODELS_DIR="/data/covidModels"
@@ -51,7 +51,7 @@ rm -f ${COVID_MODELS_DIR}/weekly-submission/forecasts/COVIDhub-baseline/*.csv
 
 HUB_DIR="/data/covid19-forecast-hub" # a fork
 BRANCH_NAME='baseline'
-if [ -z "${DRY_RUN+x}" ]; then
+if [ -z "${DRY_RUN+x}" ]; then # not DRY_RUN
   slack_message "deleting old branch"
   git -C ${HUB_DIR} branch --delete --force ${BRANCH_NAME} # delete local branch
   git -C ${HUB_DIR} push origin --delete ${BRANCH_NAME}    # delete remote branch
@@ -94,14 +94,14 @@ fi
 # found exactly one PDF_DIR
 slack_message "PDF_DIR success: PDF_DIR=${PDF_DIR}"
 
-if [ -n "${DRY_RUN+x}" ]; then
+if [ -n "${DRY_RUN+x}" ]; then # yes DRY_RUN
   PDF_FILES=$(find "${PDF_DIR}" -maxdepth 1 -mindepth 1 -type f)
   CSV_FILES=$(find "${CSV_DIR}" -maxdepth 1 -mindepth 1 -type f)
   slack_message "DRY_RUN set, exiting. PDF_FILES=${PDF_FILES}, CSV_FILES=${CSV_FILES}"
   exit 0 # success
 fi
 
-# PDF_DIR success + non-DRY_RUN: create and push branch with new CSV file. we first sync fork w/upstream and then push
+# PDF_DIR success + not DRY_RUN: create and push branch with new CSV file. we first sync fork w/upstream and then push
 # to the fork b/c sometimes a PR will fail to be auto-merged, which we think is caused by an out-of-sync fork
 slack_message "updating forked HUB_DIR=${HUB_DIR}"
 cd "${HUB_DIR}"
