@@ -1,15 +1,15 @@
-This directory contains [AWS](https://aws.amazon.com/) -based scripts that automate the running of weekly utility scripts in this repo.
+This directory contains [AWS](https://aws.amazon.com/) -based scripts that automate the running of weekly utility scripts in this repo. Note that these run on a single EC2 instance that we've configured with dependencies required by any of the scripts.
 
+> Note: We are in the process of moving scripts from that EC2 instance to a Docker container-based solution that runs on [Amazon Elastic Container Service](https://aws.amazon.com/ecs/). Our convention is to locate those scripts in their own directories that are adjacent to their model source. An example is the [baseline Dockerfile](../baseline_model_docker/Dockerfile) in this repo.
 
 # Files
 - README.md: this file
-- baseline-setup.md: sketch of the commands that configured the instance - libraries, etc.
+- vm-setup.md: sketch of the commands that configured the EC2 instance - libraries, etc.
 - lambda.py: the Lambda function
-- run-baseline.sh: runs the Reichlab COVID-19 model
 - run-startup-script.sh: the instance's init script that runs on startup. dispatches based on the "startup_script" tag (see below)
 - run-weekly-reports.sh: runs the Reichlab COVID-19 reports generator. dispatches based on ""
 - sandbox.sh: a debugging script that does some git operations and posts Slack messages and uploads a file to slack
-- slack.sh: defines some simple functions for posting slack messages and uploading files
+- slack.sh: defines some simple functions for posting Slack messages and uploading files to Slack
 
 
 # Manually starting a run
@@ -68,7 +68,7 @@ su -c "/data/covidModels/aws-vm-scripts/run-startup-script.sh" ec2-user >> /tmp/
 ```
 
 # AWS EC2 instance
-I’ve configured this EC2 instance: [i-0db5237193478dd8d](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#InstanceDetails:instanceId=i-0db5237193478dd8d), which is named "baseline model". It is an [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2/) machine that has been configured to have all the required settings and OS and R libraries. It auto-mounts (via `fstab`) a 100 GB [gp2 EBS volume](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html) that has clones of the required repos, and persists across reboots.
+I’ve configured this EC2 instance: [i-0db5237193478dd8d](https://console.aws.amazon.com/ec2/v2/home?region=us-east-1#InstanceDetails:instanceId=i-0db5237193478dd8d), which is named "covid weekly". It is an [Amazon Linux 2](https://aws.amazon.com/amazon-linux-2/) machine that has been configured to have all the required settings and OS and R libraries. It auto-mounts (via `fstab`) a 100 GB [gp2 EBS volume](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-volume-types.html) that has clones of the required repos, and persists across reboots.
 
 The instance's account is the default `ec2-user`, which is the owner of the EBS volume's cloned repos.
 
@@ -77,12 +77,14 @@ The instance's account is the default `ec2-user`, which is the owner of the EBS 
 The Lambda function [runCovidWeekly](https://us-east-1.console.aws.amazon.com/lambda/home?region=us-east-1#/functions/runCovidWeekly?tab=code) (written in Python) starts the above EC2 instance, looking for the instance whose name is 'covid weekly' to identify it. The function's execution role is [EC2RoleForBaselineScriptLambda](https://console.aws.amazon.com/iam/home#/roles/EC2RoleForBaselineScriptLambda?section=permissions), which has the [EC2DescribeStartStopWithLogs](https://console.aws.amazon.com/iam/home#/policies/arn:aws:iam::312560106906:policy/EC2DescribeStartStopWithLogs$jsonEditor) policy attached to it. That policy allows describing, starting, and stopping instances, and writing to logs.
 
 
-# AWS EventBridge events
-We have set up Amazon EventBridge rules to run the Lambda function on a schedule, specifying which script to start up as described above. Here's an example rule: [MondayMorning9aEST](https://console.aws.amazon.com/events/home?region=us-east-1#/eventbus/default/rules/MondayMorning9aEST): triggers the Lambda function that starts the above EC2 instance, using the cron event schedule `cron(0 13 ? * MON *)` (every Monday at 9AM EST). Passes "run-baseline.sh" for "startup_script". NB: We've had to adjust this +/- 1hr when Daylight Savings Time changes.
+# AWS EventBridge rules
+We have set up [Amazon EventBridge rules](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-rules.html) to run the Lambda function on a schedule, specifying which script to start up as described above. Here's an example rule: [MondayAfternoon1pEST](https://console.aws.amazon.com/events/home?region=us-east-1#/eventbus/default/rules/MondayAfternoon1pEST): triggers the Lambda function that starts the above EC2 instance, using the cron event schedule `cron(0 17 ? * MON *)` (every Monday at 1700 UTC), and passes "run-covid19-hosp-trend-ensemble.sh" for "startup_script".
+
+> Note: With EventBridge rules, we have to adjust cron jobs +/- 1hr when Daylight Savings Time changes. We are in the process of moving scheduling from EventBridge rules to [EventBridge scheduler](https://aws.amazon.com/eventbridge/scheduler/), which accounts for DST.
 
 
 ## Slack app
-`run-baseline.sh` uses the Slack app [baseline script app](https://reichlab.slack.com/apps/A031PAEB2TA-baseline-script-app?settings=1&tab=settings) (developer configuration link [here](https://api.slack.com/apps/A031PAEB2TA)) to communicate status and results while it's running.
+[slack.sh](slack.sh) uses the Slack app [baseline script app](https://reichlab.slack.com/apps/A031PAEB2TA-baseline-script-app?settings=1&tab=settings) (developer configuration link [here](https://api.slack.com/apps/A031PAEB2TA)) to communicate status and results while it's running.
 
 App credentials and channel information are passed to the script via the `~ec2-user/.env` file, which contains these fields:
 
@@ -93,5 +95,4 @@ CHANNEL_ID=C01DTCAL49X
 
 The token is the _Bot User OAuth Token_ for the app, and the channel id is that of [#weekly-ensemble](https://app.slack.com/client/T089JRGMA/C01DTCAL49X). The app has been configured to have the `chat:write` and `files:write` _Bot Token Scopes_, and has been added to that channel.
 
-For simplicity, we use simple `curl` calls ([docs](https://api.slack.com/tutorials/tracks/posting-messages-with-curl)) to send messages and upload files - see the functions `slack_message()` and `slack_upload()` in `run-baseline.sh`.
-
+For simplicity, we use simple `curl` calls ([docs](https://api.slack.com/tutorials/tracks/posting-messages-with-curl)) to send messages and upload files - see the functions `slack_message()` and `slack_upload()` in [slack.sh](slack.sh).
