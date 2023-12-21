@@ -54,6 +54,8 @@ See https://github.com/reichlab/container-utils/blob/main/docs/ecs.md for detail
 
 # To publish the image
 
+> Note: Make sure the image you push for ECS use is built for the `amd64` architecture. This is important if you're running on an Apple Silicon Mac, which has a `arm64` architecture. Use `--platform=linux/amd64` for your `docker build` command.
+
 ```bash
 docker login -u "reichlab" docker.io
 docker tag covid-baseline:1.0 reichlab/covid-baseline:1.0
