@@ -219,7 +219,6 @@ NB: For the `covid19-forecast-hub` repo we use the `reichlabmachine` fork and it
 
 ```bash
 git -C /data clone https://github.com/reichlab/covidModels.git
-git -C /data clone https://github.com/reichlab/covidData.git
 git -C /data clone https://github.com/reichlab/covid19-forecast-hub-web.git
 git -C /data clone https://github.com/reichlab/covidEnsembles.git
 git -C /data clone https://github.com/reichlab/covid-hosp-models.git
